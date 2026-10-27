@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>QuantForge — Quantitative Finance Platform</title>
+<meta name="description" content="Open-source quantitative finance platform: options pricing, order book simulation, portfolio optimization, AI mentor, and quant interview prep."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.4/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#02060f;--s1:#07111f;--s2:#0d1e30;--s3:#162840;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
+  --cyan:#00b4d8;--green:#06d6a0;--amber:#ffd60a;--purple:#7b2ff7;
+  --red:#ef4444;--blue:#3b82f6;
+  --text:#e2e8f0;--text2:#8493a5;--text3:#3d5166;
+  --r:14px;--r-sm:9px;--shadow:0 8px 32px rgba(0,0,0,.5);
+}
+html,body,#root{height:100%}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:99px}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes meshFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(4%,3%) scale(1.08)}}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes barGrow{from{width:0}}
+@keyframes dotBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(0,180,216,.3)}50%{box-shadow:0 0 0 10px rgba(0,180,216,0)}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── Landing Page ── */
+.landing{height:100vh;overflow-y:auto;scroll-behavior:smooth}
+.ticker-bar{background:var(--s1);border-bottom:1px solid var(--border);padding:8px 0;overflow:hidden;white-space:nowrap}
+.ticker-inner{display:inline-flex;gap:48px;animation:ticker 30s linear infinite}
+.ticker-item{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)}
+.ticker-item.up{color:var(--green)}.ticker-item.dn{color:var(--red)}
+
+.hero{position:relative;min-height:calc(100vh - 41px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:40px 24px}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 25% 40%,rgba(0,180,216,.1) 0,transparent 55%),radial-gradient(ellipse at 75% 60%,rgba(6,214,160,.07) 0,transparent 55%);animation:meshFloat 10s ease-in-out infinite}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:64px 64px}
+.hero-content{position:relative;text-align:center;max-width:800px;animation:fadeUp .7s ease}
+.wordmark{font-size:clamp(14px,2vw,16px);font-weight:700;letter-spacing:6px;text-transform:uppercase;color:var(--cyan);margin-bottom:20px}
+.hero-title{font-size:clamp(40px,7vw,80px);font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:20px}
+.hero-title span{background:linear-gradient(135deg,var(--text) 30%,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:clamp(15px,2vw,19px);color:var(--text2);max-width:560px;margin:0 auto 40px;font-weight:400;line-height:1.65}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
+.hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:40px}
+.hero-stat-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--cyan)}
+.hero-stat-lab{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+.section{padding:80px 24px;max-width:1100px;margin:0 auto}
+.section-tag{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);margin-bottom:12px}
+.section-title{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-1px;margin-bottom:16px}
+.section-sub{font-size:16px;color:var(--text2);max-width:520px;line-height:1.7}
+
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:48px}
+.feature-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:28px;cursor:pointer;transition:all .2s ease;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;transition:opacity .2s}
+.feature-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.4)}
+.feature-card.c1::before{background:linear-gradient(90deg,var(--cyan),var(--blue))}
+.feature-card.c2::before{background:linear-gradient(90deg,var(--green),var(--cyan))}
+.feature-card.c3::before{background:linear-gradient(90deg,var(--amber),var(--green))}
+.feature-card.c4::before{background:linear-gradient(90deg,var(--purple),var(--cyan))}
+.feature-card.c5::before{background:linear-gradient(90deg,var(--red),var(--amber))}
+.feature-card.c6::before{background:linear-gradient(90deg,var(--blue),var(--purple))}
+.feature-icon{font-size:32px;margin-bottom:16px}
+.feature-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.feature-desc{font-size:13px;color:var(--text2);line-height:1.65}
+.feature-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.pill{padding:3px 9px;border-radius:99px;font-size:10px;font-weight:600;background:var(--s2);color:var(--text2);border:1px solid var(--border)}
+
+.edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:48px}
+.edu-visual{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:28px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2}
+.edu-visual .kw{color:var(--cyan)}.edu-visual .fn{color:var(--green)}.edu-visual .cm{color:var(--text3)}.edu-visual .nm{color:var(--amber)}
+
+.lp-footer{background:var(--s1);border-top:1px solid var(--border);padding:40px 24px;text-align:center;color:var(--text3);font-size:13px}
+
+/* ── Platform Shell ── */
+.platform{display:flex;height:100vh;width:100vw;overflow:hidden;animation:fadeIn .3s ease}
+.sidebar{width:230px;min-width:230px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sb-logo{padding:22px 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sb-mark{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--cyan),#0077aa);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#000;flex-shrink:0}
+.sb-name{font-weight:900;font-size:17px;letter-spacing:-.3px;background:linear-gradient(135deg,var(--text),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb-tag{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.sb-sec{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);font-weight:700;padding:16px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 20px;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:500;width:100%;text-align:left;transition:all .15s;border-radius:0}
+.nav-item:hover{background:var(--s2);color:var(--text)}
+.nav-item.active{background:rgba(0,180,216,.1);color:var(--cyan);font-weight:700}
+.nav-item .ni{width:18px;text-align:center;font-size:15px}
+.nav-badge{margin-left:auto;background:var(--cyan);color:#000;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px}
+.sb-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:9px}
+.sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.topbar{padding:18px 28px;border-bottom:1px solid var(--border);background:var(--s1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-weight:800;font-size:20px;letter-spacing:-.3px}
+.topbar-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.topbar-actions{display:flex;gap:10px}
+.content-area{flex:1;overflow-y:auto;padding:24px 28px}
+
+/* ── Generic Components ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:22px}
+.card-title{font-weight:800;font-size:15px;letter-spacing:-.2px;margin-bottom:3px}
+.card-sub{font-size:12.5px;color:var(--text2);margin-bottom:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--r-sm);border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;transition:all .15s ease}
+.btn-primary{background:var(--cyan);color:#000}.btn-primary:hover{background:#00d0f0;box-shadow:0 0 20px rgba(0,180,216,.4)}
+.btn-green{background:var(--green);color:#000}.btn-green:hover{background:#08f5b8}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}.btn-ghost:hover{color:var(--text);border-color:var(--cyan)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.input{background:var(--s2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:9px 13px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:border-color .15s;width:100%}
+.input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,180,216,.08)}
+.input::placeholder{color:var(--text3)}
+select.input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238493a5' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.label{font-size:10.5px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:block}
+.input-wrap{margin-bottom:14px}
+
+.range-wrap{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--cyan);height:4px;cursor:pointer}
+.range-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);min-width:50px;text-align:right}
+
+.stat-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px;position:relative;overflow:hidden}
+.stat-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-box.cyan::before{background:var(--cyan)}.stat-box.green::before{background:var(--green)}
+.stat-box.amber::before{background:var(--amber)}.stat-box.purple::before{background:var(--purple)}
+.stat-box.red::before{background:var(--red)}.stat-box.blue::before{background:var(--blue)}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;margin:6px 0 2px}
+.stat-val.cyan{color:var(--cyan)}.stat-val.green{color:var(--green)}.stat-val.amber{color:var(--amber)}
+.stat-val.purple{color:var(--purple)}.stat-val.red{color:var(--red)}.stat-val.blue{color:var(--blue)}
+.stat-lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
+.stat-delta{font-size:11px;margin-top:4px}
+.stat-delta.pos{color:var(--green)}.stat-delta.neg{color:var(--red)}
+
+.tabs{display:flex;gap:4px;padding:4px;background:var(--s2);border-radius:var(--r-sm);margin-bottom:20px;width:fit-content}
+.tab-btn{padding:7px 16px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.tab-btn.active{background:var(--s3);color:var(--cyan)}
+.tab-btn:hover:not(.active){color:var(--text)}
+
+.progress-bar{height:6px;background:var(--s3);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;animation:barGrow .7s ease both;transition:width .4s ease}
+
+.divider{height:1px;background:var(--border);margin:18px 0}
+
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;font-size:10.5px;font-weight:700}
+.badge-cyan{background:rgba(0,180,216,.12);color:var(--cyan)}
+.badge-green{background:rgba(6,214,160,.12);color:var(--green)}
+.badge-amber{background:rgba(255,214,10,.12);color:var(--amber)}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red)}
+.badge-purple{background:rgba(123,47,247,.12);color:var(--purple)}
+
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.2);border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
+.mono{font-family:'JetBrains Mono',monospace}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+
+/* ── Chart canvas wrapper ── */
+.chart-wrap{position:relative;width:100%}
+
+/* ── LOB Visualizer ── */
+.lob-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.lob-col-head{text-align:center;padding:6px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:700}
+.lob-row{display:flex;align-items:center;padding:3px 8px;border-radius:4px;transition:background .15s}
+.lob-row.bid{background:rgba(6,214,160,.06);justify-content:flex-end}
+.lob-row.ask{background:rgba(239,68,68,.06)}
+.lob-price{font-weight:700}
+.lob-price.bid{color:var(--green)}.lob-price.ask{color:var(--red)}
+.lob-qty{color:var(--text2);width:60px;text-align:right}
+.lob-bar-wrap{flex:1;height:14px;background:var(--s3);border-radius:3px;overflow:hidden;margin:0 8px}
+.lob-bar{height:100%;border-radius:3px;transition:width .2s ease}
+.lob-bar.bid{background:rgba(6,214,160,.4);float:right}.lob-bar.ask{background:rgba(239,68,68,.4)}
+.trade-tape{max-height:160px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:12px;display:flex;flex-direction:column;gap:2px}
+.trade-row{display:flex;justify-content:space-between;padding:4px 8px;border-radius:4px;animation:fadeIn .2s ease}
+.trade-row.buy{background:rgba(6,214,160,.06);color:var(--green)}.trade-row.sell{background:rgba(239,68,68,.06);color:var(--red)}
+
+/* ── Options Lab ── */
+.greeks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.greek-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;text-align:center}
+.greek-name{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:700;margin-bottom:4px}
+.greek-sym{font-size:20px;margin-bottom:4px}
+.greek-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--cyan)}
+.greek-desc{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* ── Portfolio ── */
+.asset-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--s2);border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:8px;font-size:13px}
+.asset-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.asset-name{font-weight:700;width:60px}
+.asset-er{color:var(--green);font-family:'JetBrains Mono',monospace;font-size:12px;width:55px}
+.asset-sigma{color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:12px;width:55px}
+.asset-weight{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan)}
+
+/* ── Interview Prep ── */
+.q-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:14px;cursor:pointer;transition:border-color .15s;animation:fadeUp .3s ease both}
+.q-card:hover{border-color:var(--border2)}
+.q-card.expanded{border-color:var(--cyan)}
+.q-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:8px}
+.q-text{font-size:15px;font-weight:600;line-height:1.5}
+.q-answer{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:13.5px;color:var(--text2);line-height:1.7;animation:fadeUp .2s ease}
+.q-answer strong{color:var(--cyan)}
+.q-answer .formula{background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--green);margin:10px 0;text-align:center}
+.q-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+
+/* ── Chat ── */
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 73px)}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px 28px;display:flex;flex-direction:column;gap:14px}
+.msg-row{display:flex;gap:12px;animation:fadeUp .25s ease}
+.msg-row.user{flex-direction:row-reverse}
+.msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.msg-av.ai{background:rgba(0,180,216,.15);border:1px solid rgba(0,180,216,.25)}
+.msg-av.user{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;font-weight:800;font-size:12px}
+.msg-bubble{max-width:72%;padding:13px 16px;border-radius:14px;font-size:13.5px;line-height:1.7}
+.msg-bubble.ai{background:var(--s2);border:1px solid var(--border);border-radius:4px 14px 14px 14px}
+.msg-bubble.user{background:linear-gradient(135deg,#1e40af,#1d4ed8);color:#fff;border-radius:14px 4px 14px 14px}
+.msg-bubble strong{font-weight:700}
+.msg-bubble ul{padding-left:18px;margin:6px 0}
+.msg-bubble li{margin:3px 0}
+.msg-time{font-size:10px;color:var(--text3);margin-top:3px;padding:0 3px}
+.typing-dots{display:flex;gap:4px;padding:12px 16px;background:var(--s2);border:1px solid var(--border);border-radius:4px 14px 14px 14px;width:fit-content}
+.tdot{width:7px;height:7px;border-radius:50%;background:var(--text3);animation:dotBounce 1.2s ease infinite}
+.tdot:nth-child(2){animation-delay:.15s}.tdot:nth-child(3){animation-delay:.3s}
+.chat-input-area{padding:16px 28px;border-top:1px solid var(--border);background:var(--s1);flex-shrink:0}
+.chat-suggestions{display:flex;gap:7px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.chat-suggestions::-webkit-scrollbar{display:none}
+.suggestion{white-space:nowrap;padding:5px 13px;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11.5px;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .15s}
+.suggestion:hover{border-color:var(--cyan);color:var(--cyan)}
+.chat-row{display:flex;gap:10px;align-items:flex-end}
+.chat-ta{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:11px;padding:11px 15px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13.5px;resize:none;outline:none;min-height:46px;max-height:110px;transition:border-color .15s}
+.chat-ta:focus{border-color:var(--cyan)}
+.chat-send{width:46px;height:46px;border-radius:11px;border:none;background:var(--cyan);color:#000;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.chat-send:hover{background:#00d0f0;transform:scale(1.05)}.chat-send:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.chat-welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px;padding:40px}
+.welcome-orb{width:72px;height:72px;border-radius:50%;background:rgba(0,180,216,.12);border:1px solid rgba(0,180,216,.3);display:flex;align-items:center;justify-content:center;font-size:32px;animation:glow 3s ease infinite}
+
+/* ── Learn Page ── */
+.lesson-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .2s}
+.lesson-card:hover{transform:translateY(-3px);border-color:var(--border2);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.lesson-thumb{height:90px;display:flex;align-items:center;justify-content:center;font-size:40px}
+.lesson-body{padding:16px}
+.lesson-body .badge{margin-bottom:8px}
+.lesson-title{font-weight:800;font-size:14px;line-height:1.3;margin-bottom:8px}
+.lesson-meta{font-size:11px;color:var(--text2);display:flex;gap:12px}
+
+/* ── Strategy Lab ── */
+.signal-up{color:var(--green);font-weight:700}
+.signal-dn{color:var(--red);font-weight:700}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:99;animation:fadeIn .2s;padding:24px}
+.modal{background:var(--s1);border:1px solid var(--border2);border-radius:18px;max-width:640px;width:100%;max-height:84vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:fadeUp .3s ease}
+.modal-head{padding:24px 24px 0;position:sticky;top:0;background:var(--s1);z-index:1;border-radius:18px 18px 0 0}
+.modal-body{padding:16px 24px 28px}
+.modal-close{float:right;background:var(--s2);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.modal-close:hover{background:var(--s3);color:var(--text)}
+.lesson-content h3{font-weight:800;font-size:16px;color:var(--cyan);margin:18px 0 8px}
+.lesson-content p{font-size:13.5px;color:var(--text2);line-height:1.75;margin-bottom:10px}
+.lesson-content ul{padding-left:18px}.lesson-content li{font-size:13.5px;color:var(--text2);line-height:1.75;margin:4px 0}
+.highlight-box{background:rgba(0,180,216,.07);border-left:3px solid var(--cyan);padding:13px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13.5px}
+.formula-block{background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--green);text-align:center;margin:14px 0}
+
+/* ── Responsive ── */
+@media(max-width:860px){.sidebar{display:none}.grid-2{grid-template-columns:1fr}.edu-grid{grid-template-columns:1fr}.hero-stats{gap:24px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo,useCallback}=React;
+
+/* ═══════════════════════════════════════════════════
+   QUANT MATH ENGINE — All models implemented in JS
+   ═══════════════════════════════════════════════════ */
+
+// Normal CDF (Abramowitz & Stegun 26.2.17)
+function normCDF(x){
+  const a=[0.319381530,-0.356563782,1.781477937,-1.821255978,1.330274429];
+  const k=1/(1+0.2316419*Math.abs(x));
+  let p=k*(a[0]+k*(a[1]+k*(a[2]+k*(a[3]+k*a[4]))));
+  p=1-0.39894228040*Math.exp(-.5*x*x)*p;
+  return x<0?1-p:p;
+}
+function normPDF(x){return Math.exp(-.5*x*x)/2.5066282746}
+
+// Black-Scholes-Merton (with continuous dividend q)
+function bsmPrice(S,K,T,r,sigma,q=0){
+  if(T<=0)return{call:Math.max(S-K,0),put:Math.max(K-S,0),d1:0,d2:0};
+  const sqT=Math.sqrt(T);
+  const d1=(Math.log(S/K)+(r-q+.5*sigma*sigma)*T)/(sigma*sqT);
+  const d2=d1-sigma*sqT;
+  const discR=Math.exp(-r*T),discQ=Math.exp(-q*T);
+  const call=S*discQ*normCDF(d1)-K*discR*normCDF(d2);
+  const put=K*discR*normCDF(-d2)-S*discQ*normCDF(-d1);
+  return{call,put,d1,d2};
+}
+
+// BSM Greeks
+function bsmGreeks(S,K,T,r,sigma,q=0){
+  if(T<=0)return{delta_c:0,delta_p:0,gamma:0,vega:0,theta_c:0,theta_p:0,rho_c:0,rho_p:0};
+  const sqT=Math.sqrt(T);
+  const d1=(Math.log(S/K)+(r-q+.5*sigma*sigma)*T)/(sigma*sqT);
+  const d2=d1-sigma*sqT;
+  const discR=Math.exp(-r*T),discQ=Math.exp(-q*T);
+  const nd1=normPDF(d1);
+  const delta_c=discQ*normCDF(d1);
+  const delta_p=discQ*(normCDF(d1)-1);
+  const gamma=discQ*nd1/(S*sigma*sqT);
+  const vega=S*discQ*nd1*sqT;
+  const theta_c=(-S*discQ*nd1*sigma/(2*sqT)-r*K*discR*normCDF(d2)+q*S*discQ*normCDF(d1))/365;
+  const theta_p=(-S*discQ*nd1*sigma/(2*sqT)+r*K*discR*normCDF(-d2)-q*S*discQ*normCDF(-d1))/365;
+  const rho_c=K*T*discR*normCDF(d2);
+  const rho_p=-K*T*discR*normCDF(-d2);
+  return{delta_c,delta_p,gamma,vega,theta_c,theta_p,rho_c,rho_p};
+}
+
+// Box-Muller normal sample
+function randn(){
+  const u=Math.random(),v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+// Monte Carlo pricing (European)
+function monteCarlo(S,K,T,r,sigma,N=30000,isCall=true){
+  const drift=(r-.5*sigma*sigma)*T, vol=sigma*Math.sqrt(T);
+  let sum=0,sumSq=0;
+  for(let i=0;i<N;i++){
+    const z=randn();
+    const St=S*Math.exp(drift+vol*z);
+    const pay=Math.max(isCall?St-K:K-St,0);
+    sum+=pay; sumSq+=pay*pay;
+  }
+  const discounted=Math.exp(-r*T);
+  const price=discounted*sum/N;
+  const se=discounted*Math.sqrt((sumSq/N-(sum/N)**2)/N);
+  return{price,se,ci_lo:price-1.96*se,ci_hi:price+1.96*se};
+}
+
+// CRR Binomial Tree
+function binomialTree(S,K,T,r,sigma,N=100,isCall=true,isAmerican=false){
+  const dt=T/N,u=Math.exp(sigma*Math.sqrt(dt)),d=1/u;
+  const p=(Math.exp(r*dt)-d)/(u-d),disc=Math.exp(-r*dt);
+  let V=[];
+  for(let j=0;j<=N;j++){
+    const St=S*Math.pow(u,j)*Math.pow(d,N-j);
+    V.push(Math.max(isCall?St-K:K-St,0));
+  }
+  for(let i=N-1;i>=0;i--){
+    for(let j=0;j<=i;j++){
+      V[j]=disc*(p*V[j+1]+(1-p)*V[j]);
+      if(isAmerican){
+        const St=S*Math.pow(u,j)*Math.pow(d,i-j);
+        V[j]=Math.max(V[j],Math.max(isCall?St-K:K-St,0));
+      }
+    }
+  }
+  return V[0];
+}
+
+// GBM path generation for Bollinger demo
+function generateGBM(S0=100,mu=0.08,sigma=0.18,T=1,N=252){
+  const dt=T/N,prices=[S0];
+  for(let i=0;i<N;i++)prices.push(prices[prices.length-1]*Math.exp((mu-.5*sigma*sigma)*dt+sigma*Math.sqrt(dt)*randn()));
+  return prices;
+}
+
+// Bollinger Bands calculation
+function bollingerBands(prices,w=20,k=2){
+  const sma=[],upper=[],lower=[],pctB=[];
+  for(let i=0;i<prices.length;i++){
+    if(i<w){sma.push(null);upper.push(null);lower.push(null);pctB.push(null);continue}
+    const slice=prices.slice(i-w,i);
+    const mean=slice.reduce((a,b)=>a+b,0)/w;
+    const std=Math.sqrt(slice.reduce((a,b)=>a+(b-mean)**2,0)/w);
+    sma.push(mean);upper.push(mean+k*std);lower.push(mean-k*std);
+    pctB.push((prices[i]-(mean-k*std))/(2*k*std));
+  }
+  return{sma,upper,lower,pctB};
+}
+
+// Backtest Bollinger strategy
+function backtestBollinger(prices,bb){
+  const equity=[100000],signals=[];
+  let pos=0,entryPx=0,cash=100000,shares=0;
+  for(let i=20;i<prices.length;i++){
+    const p=prices[i],up=bb.upper[i],lo=bb.lower[i],mid=bb.sma[i];
+    if(!up)continue;
+    if(pos===0){
+      if(p<=lo){pos=1;shares=Math.floor(cash/p);cash-=shares*p;entryPx=p;signals.push({i,type:'buy'})}
+      else if(p>=up){pos=-1;shares=Math.floor(cash/p);entryPx=p;signals.push({i,type:'sell'})}
+    }else if(pos===1&&p>=mid){cash+=shares*p;shares=0;pos=0;signals.push({i,type:'exit'})}
+    else if(pos===-1&&p<=mid){cash+=shares*(entryPx-p)+shares*entryPx;shares=0;pos=0;signals.push({i,type:'exit'})}
+    equity.push(cash+shares*p*(pos>0?1:0));
+  }
+  const totalRet=((equity[equity.length-1]/100000)-1)*100;
+  const rets=equity.slice(1).map((e,i)=>e/equity[i]-1);
+  const sharpe=(rets.reduce((a,b)=>a+b,0)/rets.length)/(Math.sqrt(rets.reduce((a,b)=>a+(b-rets.reduce((x,y)=>x+y,0)/rets.length)**2,0)/rets.length)+1e-9)*Math.sqrt(252);
+  return{equity,signals,totalRet,sharpe};
+}
+
+// Markowitz portfolio simulation
+const ASSETS=[
+  {name:'AAPL',er:0.152,sigma:0.285,sector:'tech',color:'#00b4d8'},
+  {name:'MSFT',er:0.134,sigma:0.238,sector:'tech',color:'#7b2ff7'},
+  {name:'NVDA',er:0.198,sigma:0.448,sector:'tech',color:'#06d6a0'},
+  {name:'JPM', er:0.112,sigma:0.202,sector:'fin', color:'#ffd60a'},
+  {name:'GS',  er:0.118,sigma:0.248,sector:'fin', color:'#f59e0b'},
+  {name:'XOM', er:0.094,sigma:0.225,sector:'enrg',color:'#ef4444'},
+  {name:'GLD', er:0.052,sigma:0.148,sector:'gold',color:'#d97706'},
+  {name:'TLT', er:0.031,sigma:0.121,sector:'bond',color:'#3b82f6'},
+];
+function getCorr(a,b){
+  if(a.sector===b.sector)return.68;
+  if(a.sector==='gold'||b.sector==='gold')return-.05;
+  if(a.sector==='bond'||b.sector==='bond')return-.18;
+  return.32;
+}
+const COV=ASSETS.map(ai=>ASSETS.map(aj=>ai.sigma*aj.sigma*(ai===aj?1:getCorr(ai,aj))));
+function randomPortfolio(){
+  let w=ASSETS.map(()=>-Math.log(Math.random()+1e-9));
+  const s=w.reduce((a,b)=>a+b,0);w=w.map(x=>x/s);
+  const er=w.reduce((acc,wi,i)=>acc+wi*ASSETS[i].er,0);
+  let variance=0;for(let i=0;i<w.length;i++)for(let j=0;j<w.length;j++)variance+=w[i]*w[j]*COV[i][j];
+  return{er,risk:Math.sqrt(variance),sharpe:(er-.04)/Math.sqrt(variance),weights:w};
+}
+
+/* ═══════════════════════════════════════════════════
+   LOB SIMULATOR
+   ═══════════════════════════════════════════════════ */
+function initLOB(mid=100.00){
+  const bids=new Map(),asks=new Map();
+  for(let i=0;i<10;i++){const p=+(mid-(i+1)*.01).toFixed(2);bids.set(p,Math.floor(Math.random()*200+50))}
+  for(let i=0;i<10;i++){const p=+(mid+(i+1)*.01).toFixed(2);asks.set(p,Math.floor(Math.random()*200+50))}
+  return{bids,asks,mid,lastId:1};
+}
+function stepLOB(book){
+  const {bids,asks,mid}=book;
+  const action=Math.random();
+  let newTrade=null;
+  if(action<.35){// new limit order
+    const isBid=Math.random()<.5;
+    const tick=Math.floor(Math.random()*8)+1;
+    const price=+(isBid?mid-tick*.01:mid+tick*.01).toFixed(2);
+    const qty=Math.floor(Math.random()*150+10);
+    const map=isBid?bids:asks;
+    map.set(price,(map.get(price)||0)+qty);
+  }else if(action<.55){// cancel
+    const isBid=Math.random()<.5;
+    const map=isBid?bids:asks;
+    const keys=[...map.keys()];
+    if(keys.length>2){const k=keys[Math.floor(Math.random()*keys.length)];const v=map.get(k);if(v>20)map.set(k,v-Math.floor(Math.random()*20+1));else map.delete(k)}
+  }else if(action<.7){// market order
+    const isBuy=Math.random()<.5;
+    const map=isBuy?asks:bids;
+    const bestKey=isBuy?Math.min(...map.keys()):Math.max(...map.keys());
+    if(map.has(bestKey)){
+      const qty=Math.floor(Math.random()*80+5);
+      const cur=map.get(bestKey);
+      if(qty>=cur)map.delete(bestKey);else map.set(bestKey,cur-qty);
+      newTrade={price:bestKey,qty:Math.min(qty,cur),side:isBuy?'buy':'sell',ts:new Date().toLocaleTimeString()};
+    }
+  }
+  return{...book,bids:new Map(bids),asks:new Map(asks),newTrade};
+}
+function getLOBDepth(book,n=8){
+  const bidPx=[...book.bids.keys()].sort((a,b)=>b-a).slice(0,n);
+  const askPx=[...book.asks.keys()].sort((a,b)=>a-b).slice(0,n);
+  const bidRows=bidPx.map(p=>({price:p,qty:book.bids.get(p)}));
+  const askRows=askPx.map(p=>({price:p,qty:book.asks.get(p)}));
+  const maxQty=Math.max(...[...bidRows,...askRows].map(r=>r.qty),1);
+  return{bidRows,askRows,maxQty};
+}
+
+/* ═══════════════════════════════════════════════════
+   INTERVIEW QUESTIONS DATA
+   ═══════════════════════════════════════════════════ */
+const QUESTIONS=[
+  {cat:'Probability',difficulty:'Easy',
+   q:'You flip a fair coin repeatedly until you get Heads. What is the expected number of flips?',
+   a:`This is a geometric distribution with p = 0.5. The expected value of a geometric distribution is **E[X] = 1/p**.
+
+So **E[X] = 1/0.5 = 2 flips**.
+
+Intuition: Half the time you get H on flip 1. A quarter of the time you need exactly 2 flips. Etc. This series sums to 2.`,
+   formula:'E[X] = 1/p = 1/0.5 = 2'},
+  {cat:'Probability',difficulty:'Easy',
+   q:'What is the probability that at least 2 people in a room of 23 share a birthday?',
+   a:`The birthday paradox! It's easier to compute the complement: **P(all different)**.
+
+P(all different) = (365/365) × (364/365) × ... × (343/365)
+
+This equals approximately **49.3%**, so:
+
+P(at least one match) ≈ **50.7%** — more likely than not!
+
+Key insight: There are C(23,2) = 253 pairs to check, each with P(match) = 1/365.`,
+   formula:'P(match) ≈ 1 - e^(-n²/730) ≈ 50.7% for n=23'},
+  {cat:'Probability',difficulty:'Medium',
+   q:'Monty Hall: You pick door 1. Host opens door 3 (goat). Should you switch to door 2?',
+   a:`**Yes, always switch.** P(win if switch) = 2/3.
+
+Initially: P(car at 1) = 1/3, P(car at 2) = 1/3, P(car at 3) = 1/3.
+
+After host reveals door 3 is a goat (host always opens a goat door):
+- P(car at door 1 | host opens 3) = **1/3** (didn't change)
+- P(car at door 2 | host opens 3) = **2/3** (absorbed door 3's probability)
+
+The host's action is NOT random — they always reveal a goat. This is key.`,
+   formula:'P(win|switch) = 2/3, P(win|stay) = 1/3'},
+  {cat:'Probability',difficulty:'Medium',
+   q:'Expected number of dice rolls to see all 6 faces (Coupon Collector Problem)?',
+   a:`This is the **Coupon Collector Problem**.
+
+When you have k distinct faces, the expected rolls to get the (k+1)th new face is 6/(6-k).
+
+**E[total] = 6/6 + 6/5 + 6/4 + 6/3 + 6/2 + 6/1 = 6 × H₆**
+
+where H₆ = 1 + 1/2 + 1/3 + 1/4 + 1/5 + 1/6 ≈ 2.45
+
+**E[total] = 6 × 2.45 ≈ 14.7 rolls**`,
+   formula:'E[T] = n·Hₙ = n(1 + 1/2 + ... + 1/n)'},
+  {cat:'Finance',difficulty:'Easy',
+   q:'If delta of a call is 0.6 and gamma is 0.08, and spot moves from 100 to 101, what is the approximate new delta?',
+   a:`Using the Taylor expansion:
+
+**ΔDelta ≈ Gamma × ΔS = 0.08 × 1 = 0.08**
+
+New delta ≈ **0.6 + 0.08 = 0.68**
+
+This is the delta-gamma approximation. Gamma measures how fast delta changes with spot — it's the "second derivative" of the option price with respect to spot.`,
+   formula:'New Δ ≈ Δ₀ + Γ·ΔS = 0.60 + 0.08×1 = 0.68'},
+  {cat:'Finance',difficulty:'Medium',
+   q:'State and derive put-call parity for European options on a non-dividend paying stock.',
+   a:`**Put-Call Parity: C - P = S - K·e^(-rT)**
+
+Derivation via replication:
+
+Portfolio A: Long call + K·e^(-rT) in cash (grows to K at T)
+Portfolio B: Long put + Long stock
+
+At expiry T:
+- If S_T > K: A gives S_T - K + K = S_T. B gives 0 + S_T = S_T ✓
+- If S_T < K: A gives 0 + K = K. B gives K - S_T + S_T = K ✓
+
+Both portfolios have equal payoff → by no-arbitrage, equal value today:
+**C + K·e^(-rT) = P + S**`,
+   formula:'C - P = S·e^(-qT) - K·e^(-rT)'},
+  {cat:'Finance',difficulty:'Medium',
+   q:'How does the Black-Scholes call price change when: (a) volatility doubles, (b) risk-free rate increases?',
+   a:`**(a) Volatility doubles:** Call price increases significantly (Vega > 0). For ATM options, price is approximately proportional to σ. **C ≈ S·σ·√(T/2π)** for ATM, so doubling σ roughly doubles the ATM option price.
+
+**(b) Risk-free rate increases:** Call price increases (Rho > 0). Higher r means:
+- The present value of the strike K·e^(-rT) decreases (you pay less today)
+- Under risk-neutral measure, stock drifts faster
+
+**Key insight:** Higher vol = higher chance of big moves = more option value. Higher r = lower PV of strike = cheaper to exercise later.`,
+   formula:'∂C/∂σ = Vega = S·N\'(d₁)·√T > 0; ∂C/∂r = Rho = K·T·e^(-rT)·N(d₂) > 0'},
+  {cat:'Finance',difficulty:'Hard',
+   q:'What is the Kelly Criterion and when should you use it?',
+   a:`The **Kelly Criterion** maximizes the expected log-wealth (long-run growth rate).
+
+For a bet with win probability p and win/loss ratio b:
+**f* = (b·p - q) / b** where q = 1 - p
+
+For stock portfolios (continuous Kelly):
+**f* = (μ - r) / σ²**
+
+where μ = expected return, r = risk-free rate, σ² = variance.
+
+**When to use:** Long-run capital growth with known edge.
+
+**Caution:** Full Kelly is very aggressive and produces large drawdowns. Most practitioners use **half-Kelly or quarter-Kelly** to reduce variance while sacrificing some growth. The formula assumes known, stable probabilities — rarely true in practice.`,
+   formula:'f* = (bp - q)/b or f* = (μ - r)/σ²'},
+  {cat:'Stochastic Calculus',difficulty:'Hard',
+   q:"State Itô's Lemma for a twice-differentiable function f(S,t) where S follows GBM.",
+   a:`If **dS = μS·dt + σS·dW** (Geometric Brownian Motion), and f(S,t) is twice continuously differentiable, then:
+
+**df = (∂f/∂t + μS·∂f/∂S + ½σ²S²·∂²f/∂S²)dt + σS·∂f/∂S·dW**
+
+The extra term **½σ²S²·∂²f/∂S²** (the Itô correction) comes from the fact that dW² = dt (quadratic variation of Brownian motion).
+
+**Key application:** Black-Scholes. Let f = V(S,t) = option price. Applying Itô's lemma and setting up a delta-hedged portfolio (eliminating the dW term) gives the Black-Scholes PDE.`,
+   formula:'df = (f_t + μS·f_S + ½σ²S²·f_{SS})dt + σS·f_S·dW'},
+  {cat:'Brainteasers',difficulty:'Easy',
+   q:'How many piano tuners are there in Chicago? (Fermi Estimation)',
+   a:`**Fermi Estimation — think in layers:**
+
+Chicago population: ~2.7 million people → ~1 million households.
+
+Piano ownership: ~1 in 20 households have a piano → ~50,000 pianos.
+
+Tuning frequency: Each piano tuned ~1x per year.
+
+Time per tuning: ~2 hours (travel + tuning). Piano tuner works ~250 days × 4 hours effective = ~500 tunings/year.
+
+**Piano tuners needed: 50,000 / 500 = ~100 tuners.**
+
+Actual answer: ~200 (our estimate was in the right order of magnitude).
+
+The skill isn't getting the exact answer — it's breaking it into **estimable components**.`,
+   formula:'Estimate = (Pianos) / (Tunings per tuner per year) ≈ 50k/500 = 100'},
+  {cat:'Brainteasers',difficulty:'Medium',
+   q:'You have 8 balls, one heavier than the rest. How do you find it in at most 2 weighings with a balance scale?',
+   a:`**Divide into thirds.**
+
+**Weighing 1:** Put 3 balls on each side (2 balls aside).
+
+- If left side heavier → heavy ball is in left group of 3
+- If right side heavier → heavy ball is in right group of 3
+- If balanced → heavy ball is one of the 2 set aside
+
+**Weighing 2:** Take the group of 3 (or 2) containing the heavy ball:
+- For group of 3: Weigh 1 vs 1. If equal, it's the 3rd. If unequal, it's the heavier side.
+- For group of 2: Weigh 1 vs 1. Heavier side wins.
+
+**Key insight:** Each weighing gives 3 possible outcomes (L, R, balanced), so 2 weighings can distinguish between 3² = 9 balls. 8 < 9, so it's achievable.`,
+   formula:'3^n weighings can identify 1-of-3^n balls. Here: 3² = 9 ≥ 8 ✓'},
+  {cat:'Probability',difficulty:'Hard',
+   q:'The 100 Prisoners Problem: 100 prisoners, each assigned a number 1-100. In a room are 100 boxes numbered 1-100, each containing a random number. Each prisoner may open 50 boxes. All must find their own number. Can they guarantee > 30% success? What is the optimal strategy?',
+   a:`**Yes! The Loop Strategy achieves ~31.2% success.**
+
+**Strategy:** Each prisoner starts at their own number, opens that box, then follows the number found (like a linked list / cycle).
+
+**Why it works:** The 100 numbers form permutation cycles. All prisoners succeed if and only if **no cycle has length > 50**. 
+
+**P(all succeed) = 1 - P(any cycle > 50) ≈ 1 - ln(2) ≈ 30.7%**
+
+Compare to random strategy: (0.5)^100 ≈ 10^(-30) — essentially impossible.
+
+The loop strategy converts an astronomically low probability into ~31%, because it correlates all prisoners' outcomes through the cycle structure.`,
+   formula:'P(success) = 1 - Σₖ₌₅₁¹⁰⁰ (1/k) ≈ 1 - ln(2) ≈ 30.7%'},
+  {cat:'Statistics',difficulty:'Medium',
+   q:'What is Value at Risk (VaR) and what are its limitations?',
+   a:`**VaR(α)** is the maximum loss not exceeded with probability α over a time horizon.
+
+Example: **1-day 95% VaR = $1M** means: "We are 95% confident losses tomorrow won't exceed $1M."
+
+**For N(0,σ²) returns:** VaR₉₅% = **1.645 × σ** and VaR₉₉% = **2.326 × σ**
+
+**Limitations (critical for interviews):**
+1. **Not subadditive:** VaR(A+B) can > VaR(A) + VaR(B) — violates diversification!
+2. **Tells you nothing about tail severity** — how bad is the loss if VaR is breached?
+3. **Assumes normal distributions** — real returns have fat tails (kurtosis > 3)
+4. **Point estimate only** — no info about the shape of the loss distribution
+5. **Historically failed:** VaR models catastrophically underestimated risk in 2008
+
+**CVaR (Conditional VaR / Expected Shortfall)** addresses #2 and is preferred by Basel III.`,
+   formula:'VaR_α = -inf{x: P(L > x) < 1-α} = μ - z_α·σ'},
+  {cat:'Finance',difficulty:'Hard',
+   q:'Explain the risk-neutral pricing framework. Why do we price under Q instead of P?',
+   a:`**Risk-Neutral Pricing:** Under the risk-neutral measure Q, all assets earn the risk-free rate r. This lets us price derivatives as:
+
+**V₀ = e^(-rT) · E^Q[V_T]**
+
+**Why Q not P?**
+
+Under the real-world measure P, stocks earn μ > r. But μ is:
+1. **Hard to estimate** (requires long history, changes over time)
+2. **Irrelevant for hedging** — you can replicate the derivative's payoff
+
+By Girsanov's theorem, we change measure from P to Q by adjusting the drift from μ to r. The **market price of risk** λ = (μ-r)/σ accounts for this.
+
+**No-arbitrage** ensures Q exists (First Fundamental Theorem). If the market is complete, Q is unique (Second Fundamental Theorem).
+
+**Key insight:** We're not saying investors are risk-neutral. We're using Q as a *mathematical device* that prices assets consistently with no-arbitrage.`,
+   formula:'dS = r·S·dt + σ·S·dW^Q where dW^Q = dW^P + λdt'},
+  {cat:'Brainteasers',difficulty:'Medium',
+   q:'You have a 3-liter jug and a 5-liter jug. How do you measure exactly 4 liters?',
+   a:`**Water Jug Problem — classic state-space search:**
+
+Step 1: Fill the 5L jug → (5L jug: 5, 3L jug: 0)
+Step 2: Pour from 5L into 3L until full → (5L: 2, 3L: 3)  
+Step 3: Empty the 3L jug → (5L: 2, 3L: 0)
+Step 4: Pour the 2L from 5L into 3L → (5L: 0, 3L: 2)
+Step 5: Fill the 5L jug → (5L: 5, 3L: 2)
+Step 6: Pour from 5L into 3L until full (only 1L fits) → **(5L: 4, 3L: 3) ✓**
+
+**We have 4L in the 5L jug.**
+
+Interview tip: These problems test systematic thinking and BFS/DFS reasoning. In an interview, verbalize your search process clearly.`,
+   formula:'State = (5L-jug amount, 3L-jug amount). Goal: reach (4, _)'},
+];
+
+/* ═══════════════════════════════════════════════════
+   LESSON CONTENT
+   ═══════════════════════════════════════════════════ */
+const LESSONS=[
+  {id:1,emoji:'⚡',tag:'Options',tagColor:'badge-cyan',title:'Black-Scholes-Merton: The Equation That Changed Finance',dur:'8 min',diff:'Intermediate',thumb:'linear-gradient(135deg,#020c18,#041828)',content:`
+<h3>The Most Famous Equation in Finance</h3>
+<p>Published in 1973 by Fischer Black, Myron Scholes, and Robert Merton (who won the Nobel Prize), the BSM model revolutionized derivatives markets. For the first time, there was a rigorous, closed-form way to price options.</p>
+<div class="highlight-box">💡 The core idea: You can create a <strong>risk-free portfolio</strong> by combining an option with the right amount of its underlying stock. If it's risk-free, it must earn the risk-free rate. This constraint uniquely determines the option's price.</div>
+<h3>The Black-Scholes PDE</h3>
+<p>The model starts by assuming stock price S follows Geometric Brownian Motion:</p>
+<div class="formula-block">dS = μS·dt + σS·dW</div>
+<p>Applying Itô's Lemma to the option price V(S,t) and forming a delta-hedged portfolio, all risk cancels, giving:</p>
+<div class="formula-block">∂V/∂t + ½σ²S²·∂²V/∂S² + rS·∂V/∂S - rV = 0</div>
+<h3>The Closed-Form Solution</h3>
+<div class="formula-block">C = S·N(d₁) - K·e^(-rT)·N(d₂)<br/>d₁ = [ln(S/K) + (r + σ²/2)T] / (σ√T)<br/>d₂ = d₁ - σ√T</div>
+<h3>Assumptions and Limitations</h3>
+<ul>
+<li>Constant volatility σ — violated in practice (vol smile/skew)</li>
+<li>Continuous trading — ignores transaction costs</li>
+<li>No jumps — real markets have crashes</li>
+<li>European exercise only — BSM doesn't handle American options exactly</li>
+<li>Log-normal returns — real returns have fat tails</li>
+</ul>
+<p>Despite these limitations, BSM remains the industry standard. Practitioners often "back out" implied volatility from market prices and observe the vol surface.</p>
+`},
+  {id:2,emoji:'🎲',tag:'Probability',tagColor:'badge-amber',title:'Monte Carlo: Let Randomness Solve Hard Problems',dur:'6 min',diff:'Beginner',thumb:'linear-gradient(135deg,#180a00,#280f00)',content:`
+<h3>The Big Idea</h3>
+<p>Monte Carlo methods use random sampling to estimate quantities that are hard to compute analytically. Named after the famous casino, they rely on the <strong>Law of Large Numbers</strong>: averages converge to expectations as N → ∞.</p>
+<div class="highlight-box">💡 To price an option: simulate thousands of stock price paths, compute the payoff on each, average them, and discount to today. That's it!</div>
+<h3>The GBM Path</h3>
+<p>Under the risk-neutral measure, stock price at time T is:</p>
+<div class="formula-block">S(T) = S(0) · exp[(r - σ²/2)T + σ√T · Z],  Z ~ N(0,1)</div>
+<h3>European Call Price</h3>
+<div class="formula-block">C ≈ e^(-rT) · (1/N) · Σᵢ max(Sᵢ(T) - K, 0)</div>
+<h3>Variance Reduction</h3>
+<ul>
+<li><strong>Antithetic Variates:</strong> For each Z, also simulate -Z. Average the two payoffs. Variance halved for free.</li>
+<li><strong>Control Variates:</strong> Use BSM price (known exactly) to "correct" the MC estimate.</li>
+<li><strong>Importance Sampling:</strong> Sample more from regions that matter most (deep ITM/OTM).</li>
+</ul>
+<h3>Monte Carlo Convergence</h3>
+<p>The standard error decreases as 1/√N. To halve the error, you need 4× as many simulations. This is the fundamental curse of MC — it's slow to converge but endlessly flexible for exotic payoffs.</p>
+`},
+  {id:3,emoji:'📊',tag:'Market Micro',tagColor:'badge-green',title:'Limit Order Books: How Markets Really Work',dur:'7 min',diff:'Advanced',thumb:'linear-gradient(135deg,#001a0d,#002d16)',content:`
+<h3>The Limit Order Book (LOB)</h3>
+<p>Every electronic exchange maintains a Limit Order Book — a sorted record of all outstanding buy (bid) and sell (ask) orders at each price level.</p>
+<div class="formula-block">Best Bid = max(bid prices)  |  Best Ask = min(ask prices)<br/>Spread = Best Ask - Best Bid</div>
+<h3>Order Types</h3>
+<ul>
+<li><strong>Limit Order:</strong> "I'll buy X shares at price P or better." Rests in the book.</li>
+<li><strong>Market Order:</strong> "Buy X shares immediately at best available price." Aggressive, sweeps the book.</li>
+<li><strong>Cancel/Modify:</strong> Remove or change a resting limit order.</li>
+</ul>
+<h3>Price-Time Priority</h3>
+<p>Orders are matched by <strong>price first, then time</strong>. Among all limit buy orders at $100.05, the one submitted first gets filled first. This is why HFT firms spend millions on co-location — microseconds of latency advantage mean queue priority.</p>
+<h3>Why This Matters for Quants</h3>
+<ul>
+<li><strong>Market Impact:</strong> Large orders move the price against you (walking up the ask)</li>
+<li><strong>Adverse Selection:</strong> If someone wants to buy urgently, they probably know something</li>
+<li><strong>Spread as Information:</strong> Wide spreads signal uncertainty; tight spreads signal liquidity</li>
+<li><strong>The Volatility-Liquidity Connection:</strong> LOB thins before volatile moves</li>
+</ul>
+<div class="highlight-box">💡 The LOB is the heartbeat of the market. Every algorithm — from HFT to statistical arbitrage — must model how its orders interact with the book.</div>
+`},
+  {id:4,emoji:'🎯',tag:'Portfolio Theory',tagColor:'badge-purple',title:'Modern Portfolio Theory: Diversification is a Free Lunch',dur:'8 min',diff:'Intermediate',thumb:'linear-gradient(135deg,#0d001a,#180028)',content:`
+<h3>Harry Markowitz's Revolution (1952)</h3>
+<p>Before 1952, investors diversified instinctively. Markowitz proved <em>mathematically</em> why and how much to diversify: you can reduce risk without sacrificing return by combining imperfectly correlated assets.</p>
+<div class="highlight-box">💡 Portfolio risk ≠ average of asset risks. If two assets are negatively correlated, combining them reduces total risk below either individual risk.</div>
+<h3>Portfolio Mathematics</h3>
+<div class="formula-block">E[Rₚ] = Σ wᵢ·μᵢ<br/>Var(Rₚ) = Σᵢ Σⱼ wᵢ·wⱼ·σᵢⱼ = wᵀΣw</div>
+<h3>The Efficient Frontier</h3>
+<p>The set of portfolios offering the maximum return for each level of risk. Any portfolio below the frontier is sub-optimal — you could get more return for the same risk (or same return for less risk).</p>
+<h3>Key Portfolios</h3>
+<ul>
+<li><strong>Global Minimum Variance:</strong> Lowest possible risk portfolio</li>
+<li><strong>Tangency Portfolio:</strong> Maximizes Sharpe ratio (risk-adjusted return)</li>
+<li><strong>Capital Market Line:</strong> Combinations of tangency portfolio + risk-free asset</li>
+</ul>
+<h3>Practical Limitations</h3>
+<ul>
+<li>Requires estimating expected returns — notoriously unstable</li>
+<li>Covariance matrices change over time</li>
+<li>Classic MPT can produce extreme (impractical) weights</li>
+<li>Solutions: Robust optimization, Black-Litterman, factor models</li>
+</ul>
+`},
+  {id:5,emoji:'🤖',tag:'Machine Learning',tagColor:'badge-red',title:'Reinforcement Learning for Trading: Q-Learning to DQN',dur:'10 min',diff:'Advanced',thumb:'linear-gradient(135deg,#1a0000,#2d0000)',content:`
+<h3>The RL Framework for Trading</h3>
+<p>Reinforcement Learning frames trading as a <strong>Markov Decision Process (MDP)</strong>:</p>
+<ul>
+<li><strong>State S:</strong> Market features (returns, RSI, MACD, position, etc.)</li>
+<li><strong>Action A:</strong> {Hold, Buy, Sell}</li>
+<li><strong>Reward R:</strong> Risk-adjusted P&L at each step</li>
+<li><strong>Policy π:</strong> Strategy mapping states to actions</li>
+</ul>
+<div class="highlight-box">💡 Goal: Learn π*(s) = argmax_a Q(s,a) — the action that maximizes expected cumulative discounted reward.</div>
+<h3>Q-Learning (Tabular)</h3>
+<div class="formula-block">Q(s,a) ← Q(s,a) + α[r + γ·max_a' Q(s',a') - Q(s,a)]</div>
+<p>Works when the state space is small enough to tabulate. For trading: discretize RSI, MACD, position into bins.</p>
+<h3>Deep Q-Network (DQN)</h3>
+<p>Replace the Q-table with a neural network Q(s,a;θ). Key innovations from DeepMind (2015):</p>
+<ul>
+<li><strong>Experience Replay:</strong> Store (s,a,r,s') tuples, sample randomly to break correlations</li>
+<li><strong>Target Network:</strong> Separate network for stable Q-targets, updated slowly</li>
+<li><strong>Clipped Reward:</strong> Normalize rewards for stable training</li>
+</ul>
+<h3>Challenges in Financial RL</h3>
+<ul>
+<li>Non-stationarity: Market regimes change</li>
+<li>Sparse rewards: Trading signals are infrequent</li>
+<li>Overfitting: Models learn noise in historical data</li>
+<li>Transaction costs significantly affect RL agent behavior</li>
+<li>Always test on truly out-of-sample data!</li>
+</ul>
+`},
+  {id:6,emoji:'📐',tag:'Mathematics',tagColor:'badge-amber',title:'Stochastic Calculus: The Math Behind Options',dur:'12 min',diff:'Advanced',thumb:'linear-gradient(135deg,#0a0a00,#1a1a00)',content:`
+<h3>Why Stochastic Calculus?</h3>
+<p>Ordinary calculus assumes smooth, differentiable functions. Brownian motion is continuous everywhere but differentiable nowhere. Stochastic calculus — developed by Kiyosi Itô — handles this.</p>
+<h3>Brownian Motion Properties</h3>
+<ul>
+<li>W(0) = 0 almost surely</li>
+<li>Increments are independent: W(t)-W(s) ⊥ W(s)-W(r) for r < s < t</li>
+<li>W(t)-W(s) ~ N(0, t-s)</li>
+<li>Paths are continuous but nowhere differentiable</li>
+<li>Quadratic variation: [W,W]_t = t (crucial for Itô's lemma!)</li>
+</ul>
+<h3>The Itô Integral</h3>
+<div class="formula-block">∫₀ᵀ f(s)·dWₛ = L²-limit of Riemann sums</div>
+<p>Unlike ordinary integrals, the Itô integral uses <em>left-endpoint evaluation</em> (non-anticipating). This makes it a martingale — crucial for pricing.</p>
+<h3>Itô's Lemma</h3>
+<p>The chain rule for stochastic processes. For dX = μdt + σdW:</p>
+<div class="formula-block">df(X,t) = (∂f/∂t + μ·∂f/∂X + ½σ²·∂²f/∂X²)dt + σ·∂f/∂X·dW</div>
+<p>The extra ½σ²·f'' term (the Itô correction) arises because (dW)² = dt — Brownian motion has non-zero quadratic variation.</p>
+<h3>Connection to PDEs</h3>
+<p>Via the Feynman-Kac theorem, stochastic expectations correspond to PDE solutions. This connects risk-neutral pricing (expectation) to Black-Scholes (PDE). Two roads, same destination.</p>
+`},
+];
+
+/* ═══════════════════════════════════════════════════
+   CHART HELPER
+   ═══════════════════════════════════════════════════ */
+const CHART_DEFAULTS={
+  responsive:true,
+  maintainAspectRatio:false,
+  plugins:{legend:{labels:{color:'#8493a5',font:{family:'Outfit',size:11}}},tooltip:{backgroundColor:'#0d1e30',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#8493a5'}},
+  scales:{x:{ticks:{color:'#3d5166',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'},border:{color:'transparent'}},y:{ticks:{color:'#3d5166',font:{size:10}},grid:{color:'rgba(255,255,255,.03)'},border:{color:'transparent'}}}
+};
+
+function QChart({config,height=280,deps=[]}){
+  const ref=useRef(null);const chartRef=useRef(null);
+  useEffect(()=>{
+    if(!ref.current)return;
+    chartRef.current?.destroy();
+    const ctx=ref.current.getContext('2d');
+    chartRef.current=new Chart(ctx,config);
+    return()=>chartRef.current?.destroy();
+  },deps);
+  return <canvas ref={ref} style={{height}} />;
+}
+
+function fmt2(n){return typeof n==='number'?n.toFixed(2):'—'}
+function fmt4(n){return typeof n==='number'?n.toFixed(4):'—'}
+function fmtPct(n){return typeof n==='number'?(n*100).toFixed(2)+'%':'—'}
+function fmtDollar(n){return '$'+n.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function nowTime(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+
+function parseMD(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^### (.+)$/gm,'<strong style="color:var(--cyan);display:block;margin:10px 0 4px">$1</strong>')
+    .replace(/\n\n/g,'<br/><br/>').replace(/\n/g,'<br/>');
+}
+
+/* ═══════════════════════════════════════════════════
+   LANDING PAGE
+   ═══════════════════════════════════════════════════ */
+const TICKERS=[
+  {sym:'BTC',px:'43,521',ch:'+2.41%',up:true},{sym:'SPY',px:'478.32',ch:'+0.87%',up:true},
+  {sym:'NVDA',px:'612.47',ch:'-1.23%',up:false},{sym:'AAPL',px:'189.84',ch:'+0.54%',up:true},
+  {sym:'QQQ',px:'412.88',ch:'+1.12%',up:true},{sym:'GLD',px:'186.24',ch:'-0.31%',up:false},
+  {sym:'VIX',px:'14.82',ch:'+3.44%',up:true},{sym:'GS',px:'378.66',ch:'+0.91%',up:true},
+  {sym:'JPM',px:'196.55',ch:'+1.02%',up:true},{sym:'TLT',px:'94.12',ch:'-0.67%',up:false},
+];
+
+function LandingPage({onLaunch}){
+  return(
+    <div className="landing">
+      {/* Ticker */}
+      <div className="ticker-bar">
+        <div className="ticker-inner">
+          {[...TICKERS,...TICKERS].map((t,i)=>(
+            <span key={i} className={`ticker-item ${t.up?'up':'dn'}`}>
+              {t.sym} {t.px} <span>{t.ch}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Hero */}
+      <div className="hero">
+        <div className="hero-bg"/><div className="hero-grid"/>
+        <div className="hero-content">
+          <div className="wordmark">QuantForge Platform</div>
+          <h1 className="hero-title">
+            <span>Where Mathematics<br/>Meets Markets</span>
+          </h1>
+          <p className="hero-sub">
+            The open-source quantitative finance platform. Six pricing models, live order book simulation, portfolio optimization, AI mentor, and quant interview prep — all in one place.
+          </p>
+          <div className="hero-btns">
+            <button className="btn btn-primary" style={{padding:'14px 32px',fontSize:15}} onClick={onLaunch}>
+              Launch Platform →
+            </button>
+            <a href="https://github.com" target="_blank" className="btn btn-ghost" style={{padding:'14px 24px',fontSize:15}}>
+              ⭐ GitHub
+            </a>
+          </div>
+          <div className="hero-stats">
+            {[{v:'6',l:'Pricing Models'},{v:'8+',l:'Strategies'},{v:'15',l:'Interview Problems'},{v:'∞',l:'Possibilities'}].map(s=>(
+              <div key={s.l} style={{textAlign:'center'}}>
+                <div className="hero-stat-val">{s.v}</div>
+                <div className="hero-stat-lab">{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Features */}
+      <div className="section" style={{paddingTop:60}}>
+        <div className="section-tag">Platform Modules</div>
+        <h2 className="section-title">Everything a Quant Needs</h2>
+        <p className="section-sub">Built from ground up with rigorous mathematics and clean code. Every model is production-quality.</p>
+        <div className="features-grid">
+          {[
+            {c:'c1',icon:'⚡',title:'Options Pricing Lab',desc:'Black-Scholes-Merton with full Greeks, Monte Carlo with variance reduction, and CRR Binomial trees. Interactive charts and implied volatility.',pills:['BSM','Monte Carlo','Binomial','Greeks','IV']},
+            {c:'c2',icon:'📊',title:'Live Order Book',desc:'Animated limit order book simulation with real-time bid/ask depth, market/limit order flow, trade tape, and price impact visualization.',pills:['LOB','HFT','Market Micro','Price Impact']},
+            {c:'c3',icon:'📈',title:'Strategy Backtester',desc:'Bollinger Bands with adaptive parameters, signal generation, full backtest with Sharpe/Calmar ratios, equity curves, and drawdown analysis.',pills:['Bollinger Bands','Backtesting','Sharpe','Mean Reversion']},
+            {c:'c4',icon:'🎯',title:'Portfolio Optimizer',desc:'Markowitz efficient frontier with Monte Carlo simulation of 3,000 random portfolios. Identify minimum variance and maximum Sharpe portfolios.',pills:['Markowitz','Efficient Frontier','Kelly','CAPM']},
+            {c:'c5',icon:'🤖',title:'AI Quant Coach',desc:'Powered by Claude AI. Ask about options, probability, market structure, or prep for Jane Street / Citadel interviews. Streaming responses.',pills:['Claude AI','Streaming','Interview Prep','Teaching']},
+            {c:'c6',icon:'🎓',title:'Quant Interview Prep',desc:"15+ problems from Xinfeng Zhou's Green Book: probability puzzles, brain teasers, stochastic calculus, derivatives pricing, and Fermi estimation.",pills:['Green Book','Probability','Brainteasers','Stochastic']},
+          ].map(f=>(
+            <div key={f.title} className={`feature-card ${f.c}`} onClick={onLaunch}>
+              <div className="feature-icon">{f.icon}</div>
+              <div className="feature-title">{f.title}</div>
+              <div className="feature-desc">{f.desc}</div>
+              <div className="feature-pills">{f.pills.map(p=><span key={p} className="pill">{p}</span>)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Education */}
+      <div className="section" style={{background:'var(--s1)',maxWidth:'100%',padding:'80px 0'}}>
+        <div style={{maxWidth:1100,margin:'0 auto',padding:'0 24px'}}>
+          <div className="section-tag">Education & Community</div>
+          <h2 className="section-title">Built for the Next Generation</h2>
+          <div className="edu-grid">
+            <div>
+              <p className="section-sub" style={{maxWidth:'100%',marginBottom:20}}>
+                QuantForge bridges the gap between academic finance and real-world quant practice. Whether you're a high school student curious about math, a university student preparing for quant interviews, or a self-taught developer exploring algo trading — this platform is yours.
+              </p>
+              <div style={{display:'flex',flexDirection:'column',gap:12,marginTop:28}}>
+                {['6 deep-dive financial lessons (stochastic calc, LOB, MPT)','15+ quant interview problems with full solutions','Live models you can experiment with in real time','AI coach that explains any concept at your level'].map(item=>(
+                  <div key={item} style={{display:'flex',alignItems:'flex-start',gap:12,fontSize:14,color:'var(--text2)'}}>
+                    <span style={{color:'var(--green)',marginTop:1}}>✓</span>{item}
+                  </div>
+                ))}
+              </div>
+              <button className="btn btn-primary" style={{marginTop:28}} onClick={onLaunch}>Start Learning →</button>
+            </div>
+            <div className="edu-visual">
+              <div><span className="cm">// Black-Scholes in JavaScript</span></div>
+              <div><span className="kw">function</span> <span className="fn">bsmPrice</span>(S, K, T, r, σ) {'{'}</div>
+              <div>&nbsp;&nbsp;<span className="kw">const</span> d1 = (ln(S/K) + (r + σ²/2)·T) / (σ·√T)</div>
+              <div>&nbsp;&nbsp;<span className="kw">const</span> d2 = d1 - σ·√T</div>
+              <div>&nbsp;&nbsp;<span className="kw">return</span> S·N(d1) - K·e<span className="nm">^(-rT)</span>·N(d2)</div>
+              <div>{'}'}</div>
+              <div>&nbsp;</div>
+              <div><span className="cm">// → Call price: $9.9245</span></div>
+              <div><span className="cm">// → Delta: 0.6087</span></div>
+              <div><span className="cm">// → Vega:  9.7692</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="lp-footer">
+        <div style={{fontSize:24,marginBottom:8}}>⚡</div>
+        <div style={{fontWeight:800,fontSize:16,color:'var(--text)',marginBottom:4}}>QuantForge</div>
+        <div>Open-source quantitative finance platform. Built for education, powered by mathematics.</div>
+        <div style={{marginTop:12,display:'flex',justifyContent:'center',gap:24,fontSize:12}}>
+          {['Options Lab','Order Book','Portfolio','AI Coach','Learn','Interview Prep'].map(l=>(
+            <span key={l} style={{cursor:'pointer',transition:'color .15s'}} onClick={onLaunch} onMouseOver={e=>e.target.style.color='var(--cyan)'} onMouseOut={e=>e.target.style.color=''}>{l}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   PLATFORM PAGES
+   ═══════════════════════════════════════════════════ */
+
+// ── Dashboard
+function Dashboard({navigate}){
+  const modules=[
+    {id:'options',icon:'⚡',title:'Options Lab',desc:'Price options, compute Greeks, compare models',color:'var(--cyan)'},
+    {id:'lob',icon:'📊',title:'Order Book',desc:'Live animated LOB simulator with trade tape',color:'var(--green)'},
+    {id:'strategy',icon:'📈',title:'Strategy Lab',desc:'Bollinger Bands backtest with equity curve',color:'var(--amber)'},
+    {id:'portfolio',icon:'🎯',title:'Portfolio Optimizer',desc:'Efficient frontier, Sharpe, Min-Variance',color:'var(--purple)'},
+    {id:'coach',icon:'🤖',title:'AI Coach',desc:'Ask any quant finance question',color:'var(--cyan)'},
+    {id:'learn',icon:'📚',title:'Learn',desc:'6 deep-dive lessons on quant fundamentals',color:'var(--green)'},
+    {id:'interview',icon:'🎓',title:'Interview Prep',desc:"Green Book problems with full solutions",color:'var(--amber)'},
+  ];
+  return(
+    <div style={{animation:'fadeUp .4s ease'}}>
+      <div style={{marginBottom:28}}>
+        <h2 style={{fontWeight:900,fontSize:26,letterSpacing:'-.5px'}}>Welcome to QuantForge ⚡</h2>
+        <p style={{color:'var(--text2)',marginTop:4,fontSize:14}}>Your quantitative finance research environment. Where do you want to go?</p>
+      </div>
+      <div className="grid-4" style={{marginBottom:24}}>
+        {[{v:'3',l:'Pricing Models',c:'cyan'},{v:'8',l:'Strategies',c:'green'},{v:'15',l:'Interview Qs',c:'amber'},{v:'6',l:'Lessons',c:'purple'}].map(s=>(
+          <div key={s.l} className={`stat-box ${s.c}`}>
+            <div className="stat-lbl">{s.l}</div>
+            <div className={`stat-val ${s.c}`}>{s.v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="grid-2" style={{gap:14}}>
+        {modules.map((m,i)=>(
+          <div key={m.id} className="card" style={{cursor:'pointer',transition:'all .2s',animationDelay:`${i*.05}s`}}
+            onClick={()=>navigate(m.id)}
+            onMouseOver={e=>{e.currentTarget.style.borderColor=m.color;e.currentTarget.style.transform='translateY(-2px)'}}
+            onMouseOut={e=>{e.currentTarget.style.borderColor='';e.currentTarget.style.transform=''}}>
+            <div style={{fontSize:24,marginBottom:10}}>{m.icon}</div>
+            <div style={{fontWeight:800,fontSize:15,marginBottom:5}}>{m.title}</div>
+            <div style={{fontSize:12.5,color:'var(--text2)'}}>{m.desc}</div>
+            <div style={{marginTop:12,fontSize:12,color:m.color,fontWeight:700}}>Open →</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Options Lab
+function OptionsLab(){
+  const [S,setS]=useState(100);const [K,setK]=useState(100);const [T,setT]=useState(0.25);
+  const [r,setR]=useState(0.05);const [sigma,setSigma]=useState(0.20);const [q,setQ]=useState(0);
+  const [isCall,setIsCall]=useState(true);const [tab,setTab]=useState('bsm');
+
+  const bsm=useMemo(()=>bsmPrice(S,K,T,r,sigma,q),[S,K,T,r,sigma,q]);
+  const greeks=useMemo(()=>bsmGreeks(S,K,T,r,sigma,q),[S,K,T,r,sigma,q]);
+  const mc=useMemo(()=>monteCarlo(S,K,T,r,sigma,5000,isCall),[S,K,T,r,sigma,isCall]);
+  const bin=useMemo(()=>binomialTree(S,K,T,r,sigma,100,isCall,false),[S,K,T,r,sigma,isCall]);
+  const binAmer=useMemo(()=>binomialTree(S,K,T,r,sigma,100,isCall,true),[S,K,T,r,sigma,isCall]);
+
+  const bsmVal=isCall?bsm.call:bsm.put;
+
+  // Payoff chart config
+  const spots=useMemo(()=>Array.from({length:80},(_,i)=>+(S*0.5+i*S/80).toFixed(2)),[S]);
+  const payoffCfg=useMemo(()=>({
+    type:'line',
+    data:{
+      labels:spots.map(s=>s.toFixed(0)),
+      datasets:[
+        {label:'BSM Price',data:spots.map(s=>{const r2=bsmPrice(s,K,T,r,sigma,q);return isCall?r2.call:r2.put}),borderColor:'#00b4d8',backgroundColor:'rgba(0,180,216,.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2},
+        {label:'Intrinsic Value',data:spots.map(s=>Math.max(isCall?s-K:K-s,0)),borderColor:'#06d6a0',borderDash:[5,4],fill:false,tension:0,pointRadius:0,borderWidth:1.5},
+        {label:'Current Spot',data:spots.map(s=>s===spots.reduce((a,b)=>Math.abs(b-S)<Math.abs(a-S)?b:a)?bsmVal:null),borderColor:'#ffd60a',pointRadius:8,pointStyle:'circle',showLine:false},
+      ]
+    },
+    options:{...CHART_DEFAULTS,plugins:{...CHART_DEFAULTS.plugins,title:{display:true,text:'Option Price vs Spot',color:'#8493a5',font:{size:12}}}}
+  }),[S,K,T,r,sigma,q,isCall,bsmVal,spots]);
+
+  // Greeks vs Spot
+  const greekCfg=useMemo(()=>({
+    type:'line',
+    data:{
+      labels:spots.map(s=>s.toFixed(0)),
+      datasets:[
+        {label:'Delta',data:spots.map(s=>isCall?bsmGreeks(s,K,T,r,sigma,q).delta_c:bsmGreeks(s,K,T,r,sigma,q).delta_p),borderColor:'#00b4d8',fill:false,tension:.4,pointRadius:0,borderWidth:1.8},
+        {label:'Gamma ×10',data:spots.map(s=>bsmGreeks(s,K,T,r,sigma,q).gamma*10),borderColor:'#06d6a0',fill:false,tension:.4,pointRadius:0,borderWidth:1.8},
+        {label:'Vega /10',data:spots.map(s=>bsmGreeks(s,K,T,r,sigma,q).vega/10),borderColor:'#ffd60a',fill:false,tension:.4,pointRadius:0,borderWidth:1.8},
+      ]
+    },
+    options:{...CHART_DEFAULTS,plugins:{...CHART_DEFAULTS.plugins,title:{display:true,text:'Greeks vs Spot',color:'#8493a5',font:{size:12}}}}
+  }),[spots,K,T,r,sigma,q,isCall]);
+
+  const slider=(label,val,setVal,min,max,step,disp)=>(
+    <div className="input-wrap">
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+        <span className="label">{label}</span>
+        <span className="mono" style={{fontSize:13,color:'var(--cyan)',fontWeight:700}}>{disp||val}</span>
+      </div>
+      <div className="range-wrap">
+        <input type="range" min={min} max={max} step={step} value={val} onChange={e=>setVal(parseFloat(e.target.value))} style={{flex:1}}/>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{animation:'fadeUp .4s ease'}}>
+      <div className="tabs">
+        {['bsm','greeks','compare'].map(t=><button key={t} className={`tab-btn ${tab===t?'active':''}`} onClick={()=>setTab(t)}>
+          {t==='bsm'?'Pricing Models':t==='greeks'?'Greeks Dashboard':'Model Comparison'}
+        </button>)}
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'280px 1fr',gap:18,alignItems:'start'}}>
+        {/* Controls */}
+        <div className="card" style={{position:'sticky',top:0}}>
+          <div className="card-title">Parameters</div>
+          <div className="divider"/>
+          <div style={{display:'flex',gap:8,marginBottom:16}}>
+            <button className={`btn btn-sm ${isCall?'btn-primary':'btn-ghost'}`} style={{flex:1}} onClick={()=>setIsCall(true)}>Call</button>
+            <button className={`btn btn-sm ${!isCall?'btn-primary':'btn-ghost'}`} style={{flex:1,background:!isCall?'var(--red)':''}} onClick={()=>setIsCall(false)}>Put</button>
+          </div>
+          {slider('Spot Price (S)',S,setS,50,200,1,`$${S}`)}
+          {slider('Strike Price (K)',K,setK,50,200,1,`$${K}`)}
+          {slider('Time to Expiry (T)',T,setT,0.01,2,0.01,`${(T*365).toFixed(0)}d`)}
+          {slider('Risk-Free Rate (r)',r,setR,0,0.15,0.001,`${(r*100).toFixed(1)}%`)}
+          {slider('Volatility (σ)',sigma,setSigma,0.01,1,0.01,`${(sigma*100).toFixed(0)}%`)}
+          {slider('Dividend Yield (q)',q,setQ,0,0.1,0.001,`${(q*100).toFixed(1)}%`)}
+          <div className="divider"/>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'var(--text2)',marginBottom:6}}>
+            <span>Moneyness</span>
+            <span style={{fontWeight:700,color:S>K?'var(--green)':S<K?'var(--red)':'var(--amber)'}}>
+              {Math.abs(S-K)<1?'ATM':S>K?'ITM (Call)':'OTM (Call)'}
+            </span>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'var(--text2)'}}>
+            <span>Intrinsic Value</span>
+            <span className="mono" style={{color:'var(--cyan)'}}>{fmtDollar(Math.max(isCall?S-K:K-S,0))}</span>
+          </div>
+        </div>
+
+        {/* Right panel */}
+        <div>
+          {tab==='bsm'&&(
+            <>
+              <div className="grid-3" style={{marginBottom:16}}>
+                <div className="stat-box cyan"><div className="stat-lbl">BSM Price</div><div className="stat-val cyan">{fmtDollar(bsmVal)}</div><div className="stat-delta pos">Closed-form exact</div></div>
+                <div className="stat-box green"><div className="stat-lbl">Monte Carlo ({(5000).toLocaleString()})</div><div className="stat-val green">{fmtDollar(mc.price)}</div><div className="stat-delta" style={{color:'var(--text2)'}}>±{fmtDollar(mc.se)} SE</div></div>
+                <div className="stat-box amber"><div className="stat-lbl">Binomial (N=100)</div><div className="stat-val amber">{fmtDollar(bin)}</div><div className="stat-delta" style={{color:'var(--text2)'}}>{fmtDollar(Math.abs(bin-bsmVal))} vs BSM</div></div>
+              </div>
+              <div className="card" style={{marginBottom:14}}>
+                <div style={{height:260}}><QChart config={payoffCfg} height={260} deps={[S,K,T,r,sigma,q,isCall]}/></div>
+              </div>
+              {/* d1 d2 */}
+              <div className="card">
+                <div className="card-title">Model Internals</div>
+                <div style={{display:'flex',gap:20,fontFamily:'JetBrains Mono',fontSize:13,marginTop:12,flexWrap:'wrap'}}>
+                  {[['d₁',fmt4(bsm.d1),'var(--cyan)'],['d₂',fmt4(bsm.d2),'var(--green)'],['N(d₁)',fmt4(normCDF(bsm.d1)),'var(--amber)'],['N(d₂)',fmt4(normCDF(bsm.d2)),'var(--purple)']].map(([l,v,c])=>(
+                    <div key={l}><span style={{color:'var(--text2)'}}>{l}: </span><span style={{color:c,fontWeight:700}}>{v}</span></div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+          {tab==='greeks'&&(
+            <>
+              <div className="greeks-grid" style={{marginBottom:16}}>
+                {[
+                  ['Δ','Delta',isCall?fmt4(greeks.delta_c):fmt4(greeks.delta_p),'Spot sensitivity','delta'],
+                  ['Γ','Gamma',fmt4(greeks.gamma),'Delta convexity','gamma'],
+                  ['ν','Vega',fmt4(greeks.vega),'Vol sensitivity','vega'],
+                  ['Θ','Theta',isCall?fmt4(greeks.theta_c):fmt4(greeks.theta_p),'Daily time decay','theta'],
+                  ['ρ','Rho',isCall?fmt4(greeks.rho_c):fmt4(greeks.rho_p),'Rate sensitivity','rho'],
+                ].map(([sym,name,val,desc])=>(
+                  <div key={name} className="greek-card">
+                    <div className="greek-name">{name}</div>
+                    <div className="greek-sym">{sym}</div>
+                    <div className="greek-val">{val}</div>
+                    <div className="greek-desc">{desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="card">
+                <div style={{height:260}}><QChart config={greekCfg} height={260} deps={[K,T,r,sigma,q,isCall]}/></div>
+              </div>
+            </>
+          )}
+          {tab==='compare'&&(
+            <div className="card">
+              <div className="card-title">Model Comparison</div>
+              <div className="card-sub">All three models on the same option</div>
+              <table style={{width:'100%',borderCollapse:'collapse',fontFamily:'JetBrains Mono',fontSize:13}}>
+                <thead><tr style={{borderBottom:'1px solid var(--border)'}}>
+                  {['Model','Price','vs BSM','Notes'].map(h=><th key={h} style={{textAlign:'left',padding:'8px 12px',color:'var(--text3)',fontSize:11,textTransform:'uppercase',letterSpacing:.8}}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {[
+                    ['Black-Scholes-Merton',bsmVal,0,'Closed-form. European only.'],
+                    ['Monte Carlo (5k paths)',mc.price,mc.price-bsmVal,`95% CI: [${fmtDollar(mc.ci_lo)}, ${fmtDollar(mc.ci_hi)}]`],
+                    ['Binomial CRR (N=100)',bin,bin-bsmVal,'European exercise'],
+                    ['Binomial CRR (American)',binAmer,binAmer-bsmVal,'Early exercise premium included'],
+                  ].map(([model,price,diff,note])=>(
+                    <tr key={model} style={{borderBottom:'1px solid var(--border)'}}>
+                      <td style={{padding:'10px 12px',color:'var(--text)',fontWeight:600}}>{model}</td>
+                      <td style={{padding:'10px 12px',color:'var(--cyan)'}}>{fmtDollar(price)}</td>
+                      <td style={{padding:'10px 12px',color:Math.abs(diff)<0.01?'var(--green)':Math.abs(diff)<0.05?'var(--amber)':'var(--red)'}}>{diff===0?'Reference':(diff>0?'+':'')+fmtDollar(diff)}</td>
+                      <td style={{padding:'10px 12px',color:'var(--text3)',fontSize:11}}>{note}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── LOB Simulator
+function LOBSimulator(){
+  const [lob,setLob]=useState(()=>initLOB(100));
+  const [trades,setTrades]=useState([]);
+  const [running,setRunning]=useState(true);
+  const [priceHistory,setPriceHistory]=useState([100]);
+  const [stats,setStats]=useState({buys:0,sells:0,cancels:0});
+
+  useEffect(()=>{
+    if(!running)return;
+    const id=setInterval(()=>{
+      setLob(prev=>{
+        const next=stepLOB(prev);
+        if(next.newTrade){
+          setTrades(t=>[next.newTrade,...t].slice(0,30));
+          setStats(s=>({...s,[next.newTrade.side==='buy'?'buys':'sells']:s[next.newTrade.side==='buy'?'buys':'sells']+1}));
+          const bestBid=Math.max(...next.bids.keys());
+          const bestAsk=Math.min(...next.asks.keys());
+          const mid=(bestBid+bestAsk)/2;
+          setPriceHistory(ph=>[...ph.slice(-60),+mid.toFixed(2)]);
+        }
+        return next;
+      });
+    },220);
+    return()=>clearInterval(id);
+  },[running]);
+
+  const depth=getLOBDepth(lob,8);
+  const spread=(Math.min(...lob.asks.keys())-Math.max(...lob.bids.keys())).toFixed(2);
+  const mid=((Math.min(...lob.asks.keys())+Math.max(...lob.bids.keys()))/2).toFixed(2);
+
+  const priceCfg=useMemo(()=>({
+    type:'line',
+    data:{
+      labels:priceHistory.map((_,i)=>i),
+      datasets:[{label:'Mid Price',data:priceHistory,borderColor:'#00b4d8',backgroundColor:'rgba(0,180,216,.06)',fill:true,tension:.3,pointRadius:0,borderWidth:1.5}]
+    },
+    options:{...CHART_DEFAULTS,animation:false,scales:{...CHART_DEFAULTS.scales,y:{...CHART_DEFAULTS.scales.y,ticks:{...CHART_DEFAULTS.scales.y.ticks,callback:v=>`$${v}`}}}}
+  }),[priceHistory]);
+
+  return(
+    <div style={{animation:'fadeUp .4s ease'}}>
+      <div style={{display:'flex',gap:12,marginBottom:20}}>
+        <button className={`btn ${running?'btn-primary':'btn-ghost'}`} onClick={()=>setRunning(r=>!r)}>
+          {running?'⏸ Pause':'▶ Resume'}
+        </button>
+        <button className="btn btn-ghost" onClick={()=>{setLob(initLOB(100));setTrades([]);setPriceHistory([100]);setStats({buys:0,sells:0,cancels:0})}}>↺ Reset</button>
+      </div>
+
+      <div className="grid-4" style={{marginBottom:16}}>
+        <div className="stat-box cyan"><div className="stat-lbl">Mid Price</div><div className="stat-val cyan">${mid}</div></div>
+        <div className="stat-box green"><div className="stat-lbl">Spread</div><div className="stat-val green">${spread}</div></div>
+        <div className="stat-box amber"><div className="stat-lbl">Buy Trades</div><div className="stat-val amber">{stats.buys}</div></div>
+        <div className="stat-box red"><div className="stat-lbl">Sell Trades</div><div className="stat-val red">{stats.sells}</div></div>
+      </div>
+
+      <div className="grid-2" style={{marginBottom:16}}>
+        {/* Order Book Depth */}
+        <div className="card">
+          <div className="card-title">Order Book Depth</div>
+          <div className="card-sub">Live bid/ask levels — Price-Time Priority</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
+            <div style={{fontWeight:700,fontSize:11,textTransform:'uppercase',letterSpacing:1,color:'var(--green)',textAlign:'center',paddingBottom:6,borderBottom:'1px solid rgba(6,214,160,.2)'}}>BID</div>
+            <div style={{fontWeight:700,fontSize:11,textTransform:'uppercase',letterSpacing:1,color:'var(--red)',textAlign:'center',paddingBottom:6,borderBottom:'1px solid rgba(239,68,68,.2)'}}>ASK</div>
+          </div>
+          {Array.from({length:8},(_,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:3}}>
+              <div className="lob-row bid" style={{justifyContent:'space-between',padding:'4px 8px'}}>
+                {depth.bidRows[i]?<>
+                  <span style={{fontFamily:'JetBrains Mono',fontSize:12,color:'var(--green)',fontWeight:700}}>${depth.bidRows[i].price.toFixed(2)}</span>
+                  <div style={{flex:1,height:12,background:'var(--s3)',borderRadius:3,margin:'0 6px',overflow:'hidden',alignSelf:'center'}}>
+                    <div style={{height:'100%',width:`${(depth.bidRows[i].qty/depth.maxQty*100).toFixed(0)}%`,background:'rgba(6,214,160,.4)',borderRadius:3,float:'right',transition:'width .2s'}}/>
+                  </div>
+                  <span style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--text2)'}}>{depth.bidRows[i].qty}</span>
+                </>:<div style={{height:20}}/>}
+              </div>
+              <div className="lob-row ask" style={{justifyContent:'space-between',padding:'4px 8px'}}>
+                {depth.askRows[i]?<>
+                  <span style={{fontFamily:'JetBrains Mono',fontSize:12,color:'var(--red)',fontWeight:700}}>${depth.askRows[i].price.toFixed(2)}</span>
+                  <div style={{flex:1,height:12,background:'var(--s3)',borderRadius:3,margin:'0 6px',overflow:'hidden',alignSelf:'center'}}>
+                    <div style={{height:'100%',width:`${(depth.askRows[i].qty/depth.maxQty*100).toFixed(0)}%`,background:'rgba(239,68,68,.4)',borderRadius:3,transition:'width .2s'}}/>
+                  </div>
+                  <span style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--text2)'}}>{depth.askRows[i].qty}</span>
+                </>:<div style={{height:20}}/>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Trade Tape + Price Chart */}
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div className="card" style={{flex:1}}>
+            <div className="card-title">Price Chart</div>
+            <div style={{height:160}}><QChart config={priceCfg} height={160} deps={[JSON.stringify(priceHistory)]}/></div>
+          </div>
+          <div className="card" style={{flex:1}}>
+            <div className="card-title" style={{marginBottom:10}}>Trade Tape</div>
+            <div className="trade-tape">
+              {trades.length===0&&<div style={{color:'var(--text3)',fontSize:12,textAlign:'center',padding:'20px 0'}}>Awaiting trades...</div>}
+              {trades.map((t,i)=>(
+                <div key={i} className={`trade-row ${t.side}`}>
+                  <span className="mono" style={{fontSize:11}}>{t.ts}</span>
+                  <span className="mono" style={{fontWeight:700}}>${t.price.toFixed(2)}</span>
+                  <span className="mono" style={{fontSize:11}}>{t.qty} sh</span>
+                  <span className="mono" style={{fontSize:10,textTransform:'uppercase'}}>{t.side}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{fontSize:12,color:'var(--text2)',lineHeight:1.7}}>
+          <strong style={{color:'var(--text)'}}>How this works:</strong> Each tick (~220ms), the simulator generates random events: limit order arrivals (Poisson process), cancellations, and market orders that cross the spread. The book maintains price-time priority. This mirrors how real exchange matching engines work — including the C++ LOB engine built in this project suite.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Strategy Lab
+function StrategyLab(){
+  const [window_,setWindow]=useState(20);const [kBand,setKBand]=useState(2);
+  const [prices,setPrices]=useState(()=>generateGBM(100,0.08,0.18,1,252));
+  const bb=useMemo(()=>bollingerBands(prices,window_,kBand),[prices,window_,kBand]);
+  const bt=useMemo(()=>backtestBollinger(prices,bb),[prices,bb]);
+  const [tab,setTab]=useState('strategy');
+
+  const newSim=()=>setPrices(generateGBM(100,0.06+Math.random()*0.1,0.12+Math.random()*0.2,1,252));
+
+  const labels=prices.map((_,i)=>i);
+  const strategyCfg=useMemo(()=>({
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Price',data:prices,borderColor:'#e2e8f0',fill:false,tension:.3,pointRadius:0,borderWidth:1.4},
+        {label:'SMA',data:bb.sma,borderColor:'#ffd60a',fill:false,tension:.3,pointRadius:0,borderWidth:1,borderDash:[4,3]},
+        {label:'Upper BB',data:bb.upper,borderColor:'rgba(239,68,68,.6)',fill:false,tension:.3,pointRadius:0,borderWidth:1},
+        {label:'Lower BB',data:bb.lower,borderColor:'rgba(6,214,160,.6)',fill:false,tension:.3,pointRadius:0,borderWidth:1},
+      ]
+    },
+    options:{...CHART_DEFAULTS,plugins:{...CHART_DEFAULTS.plugins,title:{display:true,text:`Bollinger Bands (${window_}-day, ${kBand}σ)`,color:'#8493a5',font:{size:12}}}}
+  }),[prices,bb,window_,kBand,labels]);
+
+  const equityCfg=useMemo(()=>({
+    type:'line',
+    data:{
+      labels:bt.equity.map((_,i)=>i),
+      datasets:[
+        {label:'Strategy Equity',data:bt.equity,borderColor:'#06d6a0',backgroundColor:'rgba(6,214,160,.06)',fill:true,tension:.3,pointRadius:0,borderWidth:1.8},
+        {label:'Buy & Hold',data:prices.slice(20).map(p=>100000*(p/prices[0])),borderColor:'#8493a5',fill:false,tension:.3,pointRadius:0,borderWidth:1,borderDash:[5,4]},
+      ]
+    },
+    options:{...CHART_DEFAULTS,plugins:{...CHART_DEFAULTS.plugins,title:{display:true,text:'Equity Curve',color:'#8493a5',font:{size:12}}},
+      scales:{...CHART_DEFAULTS.scales,y:{...CHART_DEFAULTS.scales.y,ticks:{...CHART_DEFAULTS.scales.y.ticks,callback:v=>`$${(v/1000).toFixed(0)}k`}}}}
+  }),[bt.equity,prices]);
+
+  return(
+    <div style={{animation:'fadeUp .4s ease'}}>
+      <div style={{display:'flex',gap:10,marginBottom:18,flexWrap:'wrap',alignItems:'center'}}>
+        <div className="tabs" style={{marginBottom:0}}>
+          {['strategy','equity'].map(t=><button key={t} className={`tab-btn ${tab===t?'active':''}`} onClick={()=>setTab(t)}>{t==='strategy'?'Price + Bands':'Equity Curve'}</button>)}
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={newSim}>↺ New Simulation</button>
+      </div>
+
+      <div className="grid-4" style={{marginBottom:16}}>
+        <div className="stat-box green"><div className="stat-lbl">Total Return</div><div className={`stat-val ${bt.totalRet>=0?'green':'red'}`}>{bt.totalRet.toFixed(2)}%</div></div>
+        <div className="stat-box cyan"><div className="stat-lbl">Sharpe Ratio</div><div className="stat-val cyan">{bt.sharpe.toFixed(3)}</div></div>
+        <div className="stat-box amber"><div className="stat-lbl">Total Signals</div><div className="stat-val amber">{bt.signals.length}</div></div>
+        <div className="stat-box blue"><div className="stat-lbl">Final Equity</div><div className="stat-val blue">${(bt.equity[bt.equity.length-1]/1000).toFixed(1)}k</div></div>
+      </div>
+
+      <div className="card" style={{marginBottom:16}}>
+        <div style={{display:'flex',gap:20,marginBottom:16,flexWrap:'wrap'}}>
+          <div style={{flex:1,minWidth:180}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}><span className="label">SMA Window</span><span className="mono" style={{fontSize:13,color:'var(--cyan)',fontWeight:700}}>{window_}d</span></div>
+            <input type="range" min={5} max={50} value={window_} onChange={e=>setWindow(+e.target.value)} style={{width:'100%',accentColor:'var(--cyan)'}}/>
+          </div>
+          <div style={{flex:1,minWidth:180}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}><span className="label">Band Width (σ)</span><span className="mono" style={{fontSize:13,color:'var(--cyan)',fontWeight:700}}>{kBand}</span></div>
+            <input type="range" min={1} max={3.5} step={0.1} value={kBand} onChange={e=>setKBand(+e.target.value)} style={{width:'100%',accentColor:'var(--cyan)'}}/>
+          </div>
+        </div>
+        <div style={{height:280}}>
+          {tab==='strategy'?<QChart config={strategyCfg} height={280} deps={[JSON.stringify(prices.slice(0,3)),window_,kBand]}/>
+          :<QChart config={equityCfg} height={280} deps={[JSON.stringify(bt.equity.slice(0,3)),window_,kBand]}/>}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">How the Strategy Works</div>
+        <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.75,marginTop:12}}>
+          <strong style={{color:'var(--text)'}}>Entry:</strong> Buy when price touches or crosses below the lower Bollinger Band (oversold signal). Short when price touches or crosses above the upper band.<br/>
+          <strong style={{color:'var(--text)'}}>Exit:</strong> Close position when price reverts to the middle band (SMA).<br/>
+          <strong style={{color:'var(--text)'}}>Logic:</strong> Mean reversion — prices tend to return to their statistical average after extreme deviations. The bands are at ±{kBand}σ, so touches happen ~{kBand===2?'4.6':kBand===1?'32':'0.3'}% of the time under normality.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Portfolio Optimizer
+function PortfolioOptimizer(){
+  const [portfolios,setPortfolios]=useState([]);const [computing,setComputing]=useState(false);
+  const [done,setDone]=useState(false);
+
+  const compute=useCallback(()=>{
+    setComputing(true);setDone(false);
+    setTimeout(()=>{
+      const ps=Array.from({length:3000},()=>randomPortfolio());
+      setPortfolios(ps);setComputing(false);setDone(true);
+    },100);
+  },[]);
+
+  const minVar=portfolios.length?portfolios.reduce((a,b)=>a.risk<b.risk?a:b):null;
+  const maxSh=portfolios.length?portfolios.reduce((a,b)=>a.sharpe>b.sharpe?a:b):null;
+
+  const scatterCfg=useMemo(()=>({
+    type:'scatter',
+    data:{datasets:[
+      {label:'Random Portfolios',data:portfolios.map(p=>({x:p.risk*100,y:p.er*100})),backgroundColor:'rgba(0,180,216,.25)',pointRadius:2.5,pointHoverRadius:4},
+      minVar?{label:'Min Variance',data:[{x:minVar.risk*100,y:minVar.er*100}],backgroundColor:'#06d6a0',pointRadius:9,pointStyle:'triangle'}:{},
+      maxSh?{label:'Max Sharpe',data:[{x:maxSh.risk*100,y:maxSh.er*100}],backgroundColor:'#ffd60a',pointRadius:9,pointStyle:'star'}:{},
+    ].filter(d=>d.data)},
+    options:{...CHART_DEFAULTS,plugins:{...CHART_DEFAULTS.plugins,title:{display:true,text:'Efficient Frontier — Risk vs Return',color:'#8493a5',font:{size:12}}},
+      scales:{
+        x:{...CHART_DEFAULTS.scales.x,title:{display:true,text:'Annualised Risk (%)',color:'#3d5166',font:{size:11}},ticks:{...CHART_DEFAULTS.scales.x.ticks,callback:v=>`${v}%`}},
+        y:{...CHART_DEFAULTS.scales.y,title:{display:true,text:'Expected Return (%)',color:'#3d5166',font:{size:11}},ticks:{...CHART_DEFAULTS.scales.y.ticks,callback:v=>`${v}%`}}
+      }}
+  }),[portfolios,minVar,maxSh]);
+
+  return(
+    <div style={{animation:'fadeUp .4s ease'}}>
+      <div className="grid-2" style={{marginBottom:16,alignItems:'start'}}>
+        <div className="card">
+          <div className="card-title">Asset Universe</div>
+          <div className="card-sub">Expected returns, volatilities, and sector correlations</div>
+          {ASSETS.map(a=>(
+            <div key={a.name} className="asset-row">
+              <div className="asset-dot" style={{background:a.color}}/>
+              <div className="asset-name">{a.name}</div>
+              <div className="asset-er">μ={fmtPct(a.er)}</div>
+              <div className="asset-sigma">σ={fmtPct(a.sigma)}</div>
+              <div style={{marginLeft:'auto',fontSize:11,color:'var(--text3)',textTransform:'uppercase',letterSpacing:.5}}>{a.sector}</div>
+            </div>
+          ))}
+          <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',marginTop:14}} onClick={compute} disabled={computing}>
+            {computing?<><span className="spinner" style={{width:14,height:14,borderTopColor:'#000'}}/> Simulating 3,000 portfolios...</>:'⚡ Run Optimizer'}
+          </button>
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div className="card" style={{flex:1}}>
+            <div style={{height:300}}>
+              {portfolios.length>0
+                ?<QChart config={scatterCfg} height={300} deps={[portfolios.length]}/>
+                :<div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text3)',fontSize:14,textAlign:'center'}}>
+                  <div><div style={{fontSize:36,marginBottom:12}}>🎯</div>Click "Run Optimizer" to<br/>generate the efficient frontier</div>
+                </div>}
+            </div>
+          </div>
+
+          {done&&minVar&&maxSh&&(
+            <div className="grid-2">
+              <div className="stat-box green">
+                <div className="stat-lbl">🟢 Min Variance</div>
+                <div className="stat-val green">{fmtPct(minVar.er)}</div>
+                <div className="stat-delta" style={{color:'var(--text2)'}}>Risk: {fmtPct(minVar.risk)} | Sharpe: {minVar.sharpe.toFixed(2)}</div>
+              </div>
+              <div className="stat-box amber">
+                <div className="stat-lbl">⭐ Max Sharpe</div>
+                <div className="stat-val amber">{fmtPct(maxSh.er)}</div>
+                <div className="stat-delta" style={{color:'var(--text2)'}}>Risk: {fmtPct(maxSh.risk)} | Sharpe: {maxSh.sharpe.toFixed(2)}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {done&&maxSh&&(
+        <div className="card">
+          <div className="card-title">Max Sharpe Portfolio Weights</div>
+          <div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:14}}>
+            {ASSETS.map((a,i)=>(
+              <div key={a.name} style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:8,padding:'10px 16px',textAlign:'center'}}>
+                <div style={{width:10,height:10,borderRadius:'50%',background:a.color,margin:'0 auto 6px'}}/>
+                <div style={{fontWeight:800,fontSize:14}}>{a.name}</div>
+                <div className="mono" style={{color:'var(--cyan)',fontSize:13,fontWeight:700}}>{fmtPct(maxSh.weights[i])}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── AI Coach
+function AICoach(){
+  const [msgs,setMsgs]=useState([]);const [input,setInput]=useState('');const [loading,setLoading]=useState(false);const [streaming,setStreaming]=useState('');
+  const bottomRef=useRef(null);const taRef=useRef(null);
+
+  useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:'smooth'})},[msgs,streaming]);
+
+  const SUGGESTIONS=['Explain Black-Scholes intuitively','What is delta hedging?','How does the LOB work?','Explain Monte Carlo convergence','Probability: Expected # coin flips to get HH?','What is Itô\'s Lemma?','How does Kelly Criterion work?','Difference between P and Q measure?'];
+
+  const send=useCallback(async(text)=>{
+    const msg=(text||input).trim();if(!msg||loading)return;
+    setInput('');
+    const newMsgs=[...msgs,{role:'user',content:msg,time:nowTime()}];
+    setMsgs(newMsgs);setLoading(true);setStreaming('');
+    try{
+      const res=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:newMsgs.map(m=>({role:m.role,content:m.content})),context:'QuantForge Platform'})});
+      if(!res.ok)throw new Error('Server error');
+      const reader=res.body.getReader();const dec=new TextDecoder();let full='';
+      while(true){const{done,value}=await reader.read();if(done)break;
+        const chunk=dec.decode(value,{stream:true});
+        for(const line of chunk.split('\n')){
+          if(line.startsWith('data: ')){const d=line.slice(6);if(d==='[DONE]')break;
+            try{const p=JSON.parse(d);if(p.text){full+=p.text;setStreaming(full)}}catch{}}}
+      }
+      if(full)setMsgs(p=>[...p,{role:'assistant',content:full,time:nowTime()}]);
+    }catch(err){setMsgs(p=>[...p,{role:'assistant',content:'Connection error. Is your `ANTHROPIC_API_KEY` set in `.env`?',time:nowTime()}]);}
+    finally{setLoading(false);setStreaming('');}
+  },[msgs,input,loading]);
+
+  return(
+    <div className="chat-container">
+      {msgs.length===0&&!loading?(
+        <div className="chat-welcome">
+          <div className="welcome-orb">🤖</div>
+          <div style={{fontWeight:900,fontSize:22,letterSpacing:'-.3px',background:'linear-gradient(135deg,var(--text),var(--cyan))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>QuantForge AI Coach</div>
+          <p style={{color:'var(--text2)',maxWidth:400,fontSize:14}}>Your expert quant finance mentor. Ask me about options, probability, market structure, stochastic calculus, or interview prep.</p>
+          <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',maxWidth:520}}>
+            {SUGGESTIONS.map(s=><button key={s} className="suggestion" onClick={()=>send(s)}>{s}</button>)}
+          </div>
+        </div>
+      ):(
+        <div className="chat-msgs">
+          {msgs.map((m,i)=>(
+            <div key={i} className={`msg-row ${m.role}`}>
+              <div className={`msg-av ${m.role}`}>{m.role==='ai'||m.role==='assistant'?'⚡':'Q'}</div>
+              <div>
+                <div className={`msg-bubble ${m.role==='assistant'?'ai':'user'}`} dangerouslySetInnerHTML={{__html:m.role==='assistant'?parseMD(m.content):m.content}}/>
+                <div className="msg-time" style={{textAlign:m.role==='user'?'right':'left'}}>{m.time}</div>
+              </div>
+            </div>
+          ))}
+          {streaming&&<div className="msg-row"><div className="msg-av ai">⚡</div><div className="msg-bubble ai" dangerouslySetInnerHTML={{__html:parseMD(streaming)}}/></div>}
+          {loading&&!streaming&&<div className="msg-row"><div className="msg-av ai">⚡</div><div className="typing-dots">{[0,1,2].map(i=><div key={i} className="tdot" style={{animationDelay:`${i*.15}s`}}/>)}</div></div>}
+          <div ref={bottomRef}/>
+        </div>
+      )}
+      <div className="chat-input-area">
+        {msgs.length>0&&<div className="chat-suggestions">{SUGGESTIONS.slice(0,5).map(s=><button key={s} className="suggestion" onClick={()=>send(s)} disabled={loading}>{s}</button>)}</div>}
+        <div className="chat-row">
+          <textarea ref={taRef} className="chat-ta" placeholder="Ask me any quant finance question..." value={input} onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}}
+            rows={1} onInput={e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,110)+'px'}}/>
+          <button className="chat-send" onClick={()=>send()} disabled={loading||!input.trim()}>
+            {loading?<span className="spinner" style={{borderTopColor:'#000'}}/>:'➤'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Learn
+function LearnPage(){
+  const [selected,setSelected]=useState(null);
+  return(
+    <div style={{animation:'fadeUp .4s ease'}}>
+      <h2 style={{fontWeight:900,fontSize:22,marginBottom:6}}>Financial Education Hub</h2>
+      <p style={{color:'var(--text2)',fontSize:14,marginBottom:24}}>Deep-dive lessons covering the mathematics, theory, and intuition behind quantitative finance.</p>
+      <div className="grid-3">
+        {LESSONS.map((l,i)=>(
+          <div key={l.id} className="lesson-card" style={{animationDelay:`${i*.06}s`}} onClick={()=>setSelected(l)}>
+            <div className="lesson-thumb" style={{background:l.thumb}}>{l.emoji}</div>
+            <div className="lesson-body">
+              <div className={`badge ${l.tagColor}`} style={{marginBottom:8}}>{l.tag}</div>
+              <div className="lesson-title">{l.title}</div>
+              <div className="lesson-meta"><span>📖 {l.dur}</span><span>⭐ {l.diff}</span></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {selected&&(
+        <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setSelected(null)}>
+          <div className="modal">
+            <div className="modal-head">
+              <button className="modal-close" onClick={()=>setSelected(null)}>✕</button>
+              <div style={{fontSize:42,marginBottom:12}}>{selected.emoji}</div>
+              <div className={`badge ${selected.tagColor}`} style={{marginBottom:8}}>{selected.tag}</div>
+              <h2 style={{fontWeight:900,fontSize:21,letterSpacing:'-.3px',marginBottom:8}}>{selected.title}</h2>
+              <div style={{display:'flex',gap:16,color:'var(--text3)',fontSize:12,paddingBottom:16,borderBottom:'1px solid var(--border)'}}>
+                <span>📖 {selected.dur}</span><span>⭐ {selected.diff}</span>
+              </div>
+            </div>
+            <div className="modal-body">
+              <div className="lesson-content" dangerouslySetInnerHTML={{__html:selected.content}}/>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Interview Prep
+function InterviewPrep(){
+  const [open,setOpen]=useState(null);const [cat,setCat]=useState('All');
+  const cats=['All',...[...new Set(QUESTIONS.map(q=>q.cat))]];
+  const filtered=cat==='All'?QUESTIONS:QUESTIONS.filter(q=>q.cat===cat);
+  return(
+    <div style={{animation:'fadeUp .4s ease'}}>
+      <h2 style={{fontWeight:900,fontSize:22,marginBottom:6}}>Quant Interview Prep</h2>
+      <p style={{color:'var(--text2)',fontSize:14,marginBottom:20}}>Problems from Xinfeng Zhou's Green Book and top HFT/quant fund interviews. Click to reveal solutions.</p>
+      <div className="q-cats">
+        {cats.map(c=><button key={c} className={`btn btn-sm ${cat===c?'btn-primary':'btn-ghost'}`} onClick={()=>setCat(c)}>{c}</button>)}
+      </div>
+      {filtered.map((q,i)=>(
+        <div key={i} className={`q-card ${open===i?'expanded':''}`} style={{animationDelay:`${i*.04}s`}} onClick={()=>setOpen(open===i?null:i)}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12}}>
+            <div style={{flex:1}}>
+              <div className="q-num">
+                <span className={`badge ${q.cat==='Probability'?'badge-cyan':q.cat==='Finance'?'badge-green':q.cat==='Stochastic Calculus'?'badge-purple':q.cat==='Statistics'?'badge-amber':'badge-red'}`}>{q.cat}</span>
+                <span style={{marginLeft:8,color:'var(--text3)'}}>{q.difficulty}</span>
+              </div>
+              <div className="q-text">{q.q}</div>
+            </div>
+            <div style={{color:'var(--text3)',fontSize:18,flexShrink:0,marginTop:4}}>{open===i?'▲':'▼'}</div>
+          </div>
+          {open===i&&(
+            <div className="q-answer">
+              <div dangerouslySetInnerHTML={{__html:parseMD(q.a)}}/>
+              {q.formula&&<div className="q-answer"><div className="formula" style={{background:'var(--s2)',border:'1px solid var(--border2)',borderRadius:8,padding:'10px 14px',fontFamily:'JetBrains Mono',fontSize:14,color:'var(--green)',textAlign:'center',marginTop:12}}>{q.formula}</div></div>}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   PLATFORM LAYOUT
+   ═══════════════════════════════════════════════════ */
+const NAV=[
+  {id:'dashboard',icon:'🏠',label:'Dashboard'},
+  {id:'options',icon:'⚡',label:'Options Lab',badge:'BSM'},
+  {id:'lob',icon:'📊',label:'Order Book'},
+  {id:'strategy',icon:'📈',label:'Strategy Lab'},
+  {id:'portfolio',icon:'🎯',label:'Portfolio'},
+  {id:'coach',icon:'🤖',label:'AI Coach',badge:'AI'},
+  {id:'learn',icon:'📚',label:'Learn'},
+  {id:'interview',icon:'🎓',label:'Interview Prep'},
+];
+const PAGE_INFO={
+  dashboard:{title:'Dashboard',sub:'Your quantitative finance research environment'},
+  options:{title:'Options Pricing Lab',sub:'BSM · Monte Carlo · Binomial Tree · Greeks'},
+  lob:{title:'Live Order Book Simulator',sub:'Animated LOB with price-time priority matching'},
+  strategy:{title:'Strategy Backtester',sub:'Bollinger Bands with equity curve and performance metrics'},
+  portfolio:{title:'Portfolio Optimizer',sub:'Markowitz efficient frontier with 3,000 simulated portfolios'},
+  coach:{title:'AI Quant Coach',sub:'Powered by Claude · Expert quant finance mentor'},
+  learn:{title:'Financial Education',sub:'Deep-dive lessons on stochastic calculus, options, LOB, and MPT'},
+  interview:{title:'Quant Interview Prep',sub:"Green Book problems with full solutions"},
+};
+
+function Platform({onBack}){
+  const [page,setPage]=useState('dashboard');
+  const info=PAGE_INFO[page]||{title:page,sub:''};
+  const isChat=page==='coach';
+
+  return(
+    <div className="platform">
+      <aside className="sidebar">
+        <div className="sb-logo">
+          <div className="sb-mark">Q</div>
+          <div><div className="sb-name">QuantForge</div><div className="sb-tag">Quant Platform</div></div>
+        </div>
+        <div className="sb-sec">Tools</div>
+        {NAV.map(n=>(
+          <button key={n.id} className={`nav-item ${page===n.id?'active':''}`} onClick={()=>setPage(n.id)}>
+            <span className="ni">{n.icon}</span>{n.label}
+            {n.badge&&<span className="nav-badge">{n.badge}</span>}
+          </button>
+        ))}
+        <div className="sb-sec" style={{marginTop:8}}>Platform</div>
+        <button className="nav-item" onClick={onBack}><span className="ni">←</span>Back to Home</button>
+        <div className="sb-footer">
+          <div className="sb-user">
+            <div className="sb-av">Q</div>
+            <div><div style={{fontWeight:700,fontSize:13}}>QuantForge</div><div style={{fontSize:10.5,color:'var(--text3)'}}>v1.0 · Open Source</div></div>
+          </div>
+        </div>
+      </aside>
+      <div className="main-area">
+        <div className="topbar">
+          <div><div className="topbar-title">{info.title}</div><div className="topbar-sub">{info.sub}</div></div>
+          <div className="topbar-actions">
+            <button className="btn btn-ghost btn-sm" onClick={()=>setPage('coach')}>🤖 Ask AI</button>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setPage('interview')}>🎓 Interview</button>
+          </div>
+        </div>
+        {isChat
+          ?<AICoach/>
+          :<div className="content-area">
+            {page==='dashboard'&&<Dashboard navigate={setPage}/>}
+            {page==='options'&&<OptionsLab/>}
+            {page==='lob'&&<LOBSimulator/>}
+            {page==='strategy'&&<StrategyLab/>}
+            {page==='portfolio'&&<PortfolioOptimizer/>}
+            {page==='learn'&&<LearnPage/>}
+            {page==='interview'&&<InterviewPrep/>}
+          </div>}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   ROOT APP
+   ═══════════════════════════════════════════════════ */
+function App(){
+  const [view,setView]=useState('landing');
+  if(view==='landing')return<LandingPage onLaunch={()=>setView('platform')}/>;
+  return<Platform onBack={()=>setView('landing')}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
