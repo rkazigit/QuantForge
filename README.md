@@ -1,269 +1,133 @@
-# ⚡ QuantForge — Quantitative Finance Platform
+# QuantForge Terminal
 
-> **Where Mathematics Meets Markets**
-> 
-> An open-source, full-stack quantitative finance platform combining six pricing models, live market microstructure simulation, portfolio optimization, an AI quant mentor, financial education, and Green Book interview prep — all in one deployable web app.
+A browser-based quantitative finance workstation: live market data, charting with technical
+indicators, a paper-trading engine, an options pricing lab, a strategy backtester, and a
+quant education module. Node.js backend, no build step, no API keys required.
 
----
+> Educational and research software. Not financial advice. See [Data and limitations](#data-and-limitations).
 
-## 🚀 Live Modules
+## Features
 
-| Module | Description | Key Concepts |
-|--------|-------------|--------------|
-| ⚡ **Options Lab** | BSM, Monte Carlo, Binomial pricing with live Greeks | d₁/d₂, Vega, Delta, Gamma, Theta, Rho |
-| 📊 **Order Book Simulator** | Animated real-time LOB with bid/ask depth and trade tape | Price-time priority, spread, market impact |
-| 📈 **Strategy Backtester** | Bollinger Bands mean-reversion with equity curve | SMA, σ-bands, Sharpe ratio, drawdown |
-| 🎯 **Portfolio Optimizer** | Markowitz efficient frontier via 3,000 simulations | MPT, Sharpe, Min-Variance, covariance |
-| 🤖 **AI Quant Coach** | Streaming Claude AI — expert quant finance mentor | Black-Scholes, Itô, Kelly, interview prep |
-| 📚 **Education Hub** | 6 deep-dive lessons on stochastic calculus, LOB, MPT | BSM derivation, Monte Carlo, GBM |
-| 🎓 **Interview Prep** | 15 Green Book problems with full solutions | Probability, finance, brainteasers, stochastic calc |
+| Module | What it does |
+|---|---|
+| **Terminal** | Candlestick / line / area charts (TradingView Lightweight Charts), 7 timeframes, symbol search, watchlist, live quote panel, 52-week range, fundamentals, 17 chart indicators (9 overlays, 8 oscillator panes) |
+| **Paper Trade** | $100k simulated cash account. Market and limit orders, resting limit orders that fill only when the market reaches them, cancel, positions, realized/unrealized P&L, equity curve |
+| **Options** | Black-Scholes-Merton, Monte Carlo (antithetic variates), CRR binomial tree (European and American). Eight Greeks (Delta, Gamma, Vega, Theta, Rho, Vanna, Volga, Charm). Live options chain with quoted IV |
+| **Backtest** | 15 strategies on any symbol, with configurable costs. Sharpe, Sortino, Calmar, max drawdown, profit factor, expectancy, trade log, equity curve vs buy-and-hold |
+| **Quant Lab** | 12 lessons (Black-Scholes derivation, Greeks, implied vol, Monte Carlo, trees, microstructure, cointegration, Kelly, honest backtesting, ML/RL, stochastic calculus, VaR/ES), 18 interview-style problems with worked solutions, Monty Hall and Kelly simulators, reading list |
 
----
+### Strategies
+Bollinger mean reversion, MACD crossover, MA golden/death cross, RSI mean reversion, Turtle (Donchian) breakout,
+VWAP deviation, Supertrend, Stochastic crossover, momentum breakout (volume-confirmed, ATR trailing stop),
+ADX trend following, Keltner breakout, triple-MA alignment, CCI reversal, Parabolic SAR, Z-score mean reversion.
 
-## ⚡ Quickstart
+### Indicators
+39 indicator functions in `public/js/indicators.js` (moving averages incl. HMA/ALMA/DEMA/TEMA, RSI, MACD, Stochastic,
+CCI, ADX/DI, ATR, Bollinger, Keltner, Donchian, Supertrend, PSAR, Ichimoku, VWAP, OBV, CMF, MFI, pivots, Fibonacci, z-score, ...).
 
-### Prerequisites
-- Node.js ≥ 18
-- An Anthropic API key → [console.anthropic.com](https://console.anthropic.com)
-
-### 1. Clone & Install
+## Quick start
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/quantforge.git
 cd quantforge
 npm install
+npm start          # http://localhost:3000
+npm test           # 16 numerical tests
 ```
 
-### 2. Configure
+Requires Node.js 18+. Market data comes from Yahoo Finance with no key.
 
-```bash
-cp .env.example .env
-# Open .env and set ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### 3. Run
-
-```bash
-npm start
-# → http://localhost:3000
-```
-
-For auto-restart during development:
-```bash
-npm run dev
-```
-
----
-
-## 🎮 Deploy to Replit
-
-1. **Import from GitHub** → paste your repo URL
-2. Open **Secrets** (🔒 tab) → add `ANTHROPIC_API_KEY`
-3. Click **Run** — Replit auto-detects `npm start`
-4. Share your Replit URL as a live demo
-
----
-
-## 🌐 Deploy to a Domain (Render / Railway / Fly.io)
-
-### Render (free tier)
-
-1. Push repo to GitHub
-2. New Web Service → connect your repo
-3. Build command: `npm install`
-4. Start command: `npm start`
-5. Add environment variable: `ANTHROPIC_API_KEY`
-6. Connect a custom domain in Render settings
-
-### Railway
-
-```bash
-npm install -g @railway/cli
-railway login
-railway init
-railway up
-railway variables set ANTHROPIC_API_KEY=sk-ant-...
-railway domain
-```
-
----
-
-## 📁 Project Structure
+## Architecture
 
 ```
-quantforge/
-├── server.js           Express backend + Anthropic streaming API
-├── package.json
-├── .env.example        Environment variable template
-├── .gitignore
-├── README.md
-└── public/
-    └── index.html      Complete React SPA — all modules, all math
+server.js                 Express + WebSocket server
+                          - Yahoo Finance quote/history/options/fundamentals proxy with caching
+                          - Paper-trading engine (in-memory, per anonymous session)
+                          - Quote broadcaster (polls subscribed symbols, pushes over WebSocket)
+public/
+  index.html              App shell
+  css/terminal.css        Design system
+  js/
+    indicators.js         Technical-analysis library (pure functions)
+    strategies.js         Strategy registry: data -> signals
+    backtest.js           Backtest engine + metrics + UI
+    options.js            Pricing engine (BSM / MC / binomial / IV solver) + UI
+    chartManager.js       Lightweight Charts wrapper, overlays and synced indicator panes
+    terminal.js           Terminal page controller
+    paperTrade.js         Paper-trading page
+    quantContent.js       Lessons and problem bank
+    quantLab.js           Quant Lab page + simulations
+    app.js                Bootstrap, API client, WebSocket feed, navigation
+test/engines.test.mjs     Numerical test suite
 ```
 
-**No build step.** React loads from CDN via Babel standalone. The entire platform is `server.js` + `public/index.html`.
+Strategies are pure functions `(ohlcv, config) -> signals`, and the backtester consumes signals without
+knowing which strategy made them. To add a strategy, write one function and add one entry to `REGISTRY` in
+`strategies.js`; the UI builds its parameter sliders from that entry automatically.
 
----
+### API
 
-## 🔌 API Endpoints
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/quote/:symbol` | Quote (price, bid/ask, volume, market state, ...) |
+| POST | `/api/quotes` | Bulk quotes `{symbols: []}` |
+| GET | `/api/history/:symbol?interval=&range=` | OHLCV candles (unix-second timestamps) |
+| GET | `/api/search/:query` | Symbol search |
+| GET | `/api/options/:symbol` | Options chain |
+| GET | `/api/fundamentals/:symbol` | Profile and key statistics |
+| GET | `/api/paper/portfolio` | Portfolio with live P&L (header `X-Session`) |
+| POST | `/api/paper/order` | Place market or limit order |
+| DELETE | `/api/paper/order/:id` | Cancel open order |
+| DELETE | `/api/paper/portfolio` | Reset account |
+| WS | `/` | Send `{action:"subscribe", symbols:[...]}`; receive `{type:"quote", ...}` |
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/coach` | Streaming SSE AI quant coach |
-| `POST` | `/api/explain` | Explain a concept (non-streaming) |
-| `GET`  | `/api/health` | Health check + model info |
-| `GET`  | `*` | Serve React SPA |
+## Testing
 
-### Example — Streaming Chat
+`npm test` runs `test/engines.test.mjs`, which checks:
 
-```js
-const res = await fetch('/api/coach', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    messages: [{ role: 'user', content: 'Explain delta hedging' }],
-    context: 'Options Lab'
-  })
-});
+- Black-Scholes prices and Greeks against reference values, put-call parity, Greeks vs. finite differences
+- Implied-vol round trips (including out-of-the-money), Monte Carlo vs. closed form (within 4 standard errors)
+- Binomial convergence; American put early-exercise premium; American call on a non-dividend stock equals European
+- Indicator correctness and regression tests (MACD signal line, ADX seeding)
+- Backtester accounting to the cent for long, short, reversal and cost scenarios
+- All 15 strategies run end-to-end and produce well-formed signals
 
-const reader = res.body.getReader();
-// Stream SSE chunks: data: {"text": "..."}\n\n
-```
+## Deployment
 
----
+The app needs a long-running Node process (WebSockets and in-memory paper accounts), so a static host
+such as GitHub Pages will not work on its own. Any Node host does:
 
-## 🧮 Quantitative Models Implemented
+**Render / Railway / Fly.io**: connect the GitHub repo, build command `npm install`, start command `npm start`.
+No environment variables are required (`PORT` is injected by the host).
 
-All models run **entirely in the browser** — zero Python backend needed.
+**Custom domain**: add the domain in your host's dashboard, then create the DNS record it asks for
+(typically a CNAME). If you use Cloudflare for DNS, WebSockets work through its proxy; use "Full (strict)" SSL.
 
-### Black-Scholes-Merton (with continuous dividends)
+## Data and limitations
 
-```
-C = S·e^(-qT)·N(d₁) − K·e^(-rT)·N(d₂)
-d₁ = [ln(S/K) + (r − q + σ²/2)T] / (σ√T)
-d₂ = d₁ − σ√T
-```
+- **Market data is from Yahoo Finance** through the unofficial `yahoo-finance2` library. It is polled, not a
+  true exchange stream, can be delayed (up to ~15 minutes on some venues), and may be rate-limited or change
+  without notice. Yahoo's terms restrict commercial redistribution: fine for a portfolio or educational project,
+  but use a licensed provider (Polygon, Alpaca, Twelve Data, ...) for anything commercial. Only
+  `fetchQuote` and `fetchHistory` in `server.js` need replacing.
+- **No Level-2 order book.** The free feed has only the best bid/ask. The depth ladder is modeled around the
+  real top of book and labelled as such in the UI.
+- **Paper trading** is long-only, whole shares, no margin, with simulated fills against bid/ask. State lives
+  in server memory and resets on restart. There are no user accounts.
+- **Backtests** fill at the next bar's open with percentage costs, one position at a time. No borrow cost, market
+  impact, or survivorship-bias handling. A good backtest here is a hypothesis, not evidence of an edge.
+- **Options** models are European-style with constant volatility; listed US equity options are American.
 
-Full Greeks: Δ, Γ, ν (Vega), Θ, ρ
+## Roadmap
 
-### Monte Carlo (European, 5,000 paths)
+- Licensed real-time data adapter and true Level-2 depth
+- Multi-asset competitive trading-case simulator (Rotman Interactive Trader style) with scripted news and liquidity
+- Persistent accounts and storage; leaderboard
+- Pairs/cointegration scanner and walk-forward optimizer in the UI
+- Heston and local-volatility pricing, volatility-surface viewer
+- AI tutor (bring-your-own API key)
+- Research notes section
 
-```
-S(T) = S₀ · exp[(r − σ²/2)T + σ√T · Z],  Z ~ N(0,1)
-Price = e^(-rT) · E[max(S(T) − K, 0)]
-```
+## License
 
-Implements Box-Muller transform for normal samples.
-
-### Binomial Tree (CRR)
-
-```
-u = exp(σ√Δt),  d = 1/u,  p = (exp(rΔt) − d) / (u − d)
-```
-
-Supports European and American exercise via backward induction.
-
-### Markowitz Portfolio Optimization
-
-```
-min  wᵀΣw        subject to:  Σwᵢ = 1,  wᵢ ≥ 0
-s.t. wᵀμ = μ_target
-```
-
-Simulates 3,000 random portfolios to trace the efficient frontier.
-
-### Bollinger Bands Strategy
-
-```
-Upper = SMA(N) + k·σ(N)
-Lower = SMA(N) − k·σ(N)
-Signal: Buy ↓ Lower, Sell ↑ Upper, Exit at Middle
-```
-
-Full backtest with Sharpe ratio and equity curve.
-
-### LOB Simulation
-
-Poisson-process order arrivals with price-time priority matching. Models:
-- Limit order placements at random price levels
-- Random cancellations
-- Market orders that cross the spread
-
----
-
-## 🎓 Interview Problems Covered
-
-From *A Practical Guide to Quantitative Finance Interviews* (Xinfeng Zhou) and top HFT firm interviews:
-
-| Category | Problems |
-|----------|----------|
-| **Probability** | Expected coin flips, Birthday paradox, Monty Hall, Coupon collector |
-| **Finance** | Delta-gamma approximation, Put-call parity, BSM sensitivities, Kelly criterion |
-| **Stochastic Calculus** | Itô's Lemma, GBM, risk-neutral vs real-world measure |
-| **Statistics** | VaR and limitations, CVaR/Expected Shortfall |
-| **Brainteasers** | Piano tuners (Fermi), 8 balls 2 weighings, 100 prisoners loop strategy, Water jug |
-
-Every problem includes a full worked solution with the key formula.
-
----
-
-## 📚 Education Lessons
-
-1. **Black-Scholes-Merton** — derivation, PDE, closed-form, assumptions
-2. **Monte Carlo Methods** — GBM paths, variance reduction, convergence
-3. **Limit Order Books** — structure, price-time priority, market impact
-4. **Modern Portfolio Theory** — Markowitz, efficient frontier, CAPM
-5. **Reinforcement Learning** — Q-learning, DQN, MDP formulation for trading
-6. **Stochastic Calculus** — Brownian motion, Itô integral, Feynman-Kac
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Backend** | Node.js + Express | API server, static file serving |
-| **AI** | Anthropic Claude (claude-opus-4-5) | Streaming quant mentor |
-| **Frontend** | React 18 (CDN) + Babel standalone | SPA, no build step |
-| **Charts** | Chart.js 4.4 (CDN) | Options payoffs, equity curves, scatter |
-| **Math** | Vanilla JavaScript | All quant models run client-side |
-| **Fonts** | Google Fonts (Outfit + JetBrains Mono) | Fintech UI typography |
-| **Rate Limiting** | express-rate-limit | API key protection |
-
----
-
-## 🔒 Security
-
-- API key is **server-side only** — never sent to the browser
-- Rate limiting: 80 requests per 15-minute window
-- Request body size capped at 20 KB
-- Message history trimmed to last 24 messages
-
----
-
-## 🗺 Roadmap
-
-- [ ] Pairs trading analyzer (cointegration + OU process)
-- [ ] Quantum portfolio optimization (QUBO formulation)
-- [ ] VaR / CVaR risk dashboard
-- [ ] Heston stochastic volatility model
-- [ ] Real market data integration (Yahoo Finance API)
-- [ ] User accounts + saved portfolios (Supabase)
-- [ ] Mobile-responsive sidebar
-- [ ] Dark/light theme toggle
-
----
-
-## 📜 Disclaimer
-
-QuantForge is an **educational and research platform**. Nothing on this platform constitutes financial advice. All models involve simplifying assumptions. Always consult a qualified financial professional before making investment decisions.
-
----
-
-## 📄 License
-
-MIT — free to use, fork, and build upon.
-
----
-
-*Built with mathematics, curiosity, and way too much coffee. ☕*
+MIT
