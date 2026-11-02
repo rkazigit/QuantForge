@@ -1,0 +1,21 @@
+{
+  // QuantForge on Cloudflare Workers (static site + API + paper-trading Durable Object).
+  "name": "quantforge",
+  "main": "worker/index.js",
+  "compatibility_date": "2025-09-01",
+
+  // The website: everything in ./public is served directly from Cloudflare's edge.
+  // Requests that don't match a file (i.e. /api/*) are handed to the Worker above.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+
+  // One Durable Object per visitor session = one persistent paper-trading account.
+  "durable_objects": {
+    "bindings": [{ "name": "PAPER", "class_name": "PaperAccount" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PaperAccount"] }],
+
+  "observability": { "enabled": true }
+}

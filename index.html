@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuantForge Terminal</title>
+  <meta name="description" content="Professional quantitative finance terminal with real market data, paper trading, options pricing, and strategy backtesting."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/terminal.css"/>
+  <!-- Startup watchdog: if the app has not booted after 7s, say exactly why instead of hanging -->
+  <script data-cfasync="false">
+  (function () {
+    var failed = [];
+    function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    // Resource failures (404 / blocked / wrong MIME type) do not bubble, so listen in the capture phase.
+    window.addEventListener('error', function (e) {
+      var t = e.target;
+      if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) failed.push(t.src || t.href);
+      else if (!window.__qfBooted && !window.__qfFirstError)
+        window.__qfFirstError = (e.message || 'error') + ' (' + String(e.filename || '').split('/').pop() + ':' + e.lineno + ')';
+    }, true);
+    setTimeout(function () {
+      if (window.__qfBooted) return;
+      var el = document.getElementById('load-status'); if (!el) return;
+      var m = '<b>QuantForge could not start.</b><br/>';
+      if (failed.length) m += 'These files failed to load:<br/><code>' + failed.map(esc).join('<br/>') + '</code><br/>' +
+        'This usually means the site was deployed from the wrong folder. The folder that contains <code>index.html</code> must also contain <code>js/</code>, <code>css/</code> and <code>vendor/</code>.';
+      else if (window.__qfFirstError) m += 'A script crashed on startup:<br/><code>' + esc(window.__qfFirstError) + '</code>';
+      else m += 'The scripts loaded but never ran. If this site is behind Cloudflare, switch <b>Rocket Loader</b> off (Speed &rarr; Optimization), then hard-refresh.';
+      el.style.cssText = 'color:#ef5350;max-width:560px;text-align:center;line-height:1.7;font-size:12px';
+      el.innerHTML = m;
+    }, 7000);
+  })();
+  </script>
+</head>
+<body>
+
+<!-- ── Loading Screen ─────────────────────────────────────────────────── -->
+<div id="loading">
+  <div class="loading-wordmark">QUANTFORGE</div>
+  <div class="loading-bar-track">
+    <div class="loading-bar-fill" id="load-bar"></div>
+  </div>
+  <div class="loading-status" id="load-status">Initializing...</div>
+</div>
+
+<!-- ── App Shell ──────────────────────────────────────────────────────── -->
+<div id="app" style="display:none; flex-direction:column; height:100vh;">
+
+  <!-- Header -->
+  <header id="header">
+    <div class="header-logo">
+      <span class="logo-text">QUANTFORGE</span>
+      <span class="logo-ver">v2.0</span>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-page="terminal">TERMINAL</button>
+      <button class="nav-tab" data-page="paper">PAPER TRADE</button>
+      <button class="nav-tab" data-page="options">OPTIONS</button>
+      <button class="nav-tab" data-page="backtest">BACKTEST</button>
+      <button class="nav-tab" data-page="quant-lab">QUANT LAB</button>
+    </nav>
+    <div class="header-market-bar" id="market-bar">
+      <!-- populated by app.js -->
+    </div>
+    <div class="header-right">
+      <div class="status-indicator">
+        <span class="status-dot" id="market-dot"></span>
+        <span id="market-label">--</span>
+      </div>
+      <div class="status-indicator">
+        <span class="status-dot" id="ws-dot"></span>
+        <span id="ws-label">CONNECTING</span>
+      </div>
+      <div class="header-clock" id="clock">--:--:-- ET</div>
+    </div>
+  </header>
+
+  <!-- Pages -->
+  <main id="main" style="flex:1; overflow:hidden; position:relative;">
+
+    <!-- Terminal -->
+    <div id="page-terminal" class="page active">
+      <div class="terminal-layout">
+        <!-- Chart area -->
+        <div class="chart-area">
+          <div class="chart-toolbar">
+            <div class="symbol-wrap">
+              <input type="text" id="symbol-input" class="symbol-input" placeholder="AAPL" autocomplete="off" spellcheck="false"/>
+              <div id="symbol-dropdown" class="symbol-dropdown" style="display:none;"></div>
+            </div>
+            <div class="tf-group" id="tf-group">
+              <button class="tf-btn" data-tf="1m">1m</button>
+              <button class="tf-btn" data-tf="5m">5m</button>
+              <button class="tf-btn" data-tf="15m">15m</button>
+              <button class="tf-btn" data-tf="30m">30m</button>
+              <button class="tf-btn active" data-tf="1d">1D</button>
+              <button class="tf-btn" data-tf="1wk">1W</button>
+              <button class="tf-btn" data-tf="1mo">1M</button>
+            </div>
+            <div class="chart-type-group">
+              <button class="ct-btn active" data-type="candlestick">Candles</button>
+              <button class="ct-btn" data-type="line">Line</button>
+              <button class="ct-btn" data-type="area">Area</button>
+            </div>
+            <select id="indicator-select" class="indicator-select">
+              <option value="">+ Indicator</option>
+              <optgroup label="Overlays">
+                <option value="sma20">SMA 20</option>
+                <option value="sma50">SMA 50</option>
+                <option value="sma200">SMA 200</option>
+                <option value="ema20">EMA 20</option>
+                <option value="ema50">EMA 50</option>
+                <option value="bb">Bollinger Bands</option>
+                <option value="vwap">VWAP</option>
+                <option value="supertrend">Supertrend</option>
+                <option value="parabolicsar">Parabolic SAR</option>
+              </optgroup>
+              <optgroup label="Oscillators (Pane)">
+                <option value="rsi">RSI 14</option>
+                <option value="macd">MACD</option>
+                <option value="stoch">Stochastic</option>
+                <option value="cci">CCI</option>
+                <option value="williamsr">Williams %R</option>
+                <option value="mfi">MFI</option>
+              </optgroup>
+              <optgroup label="Volume">
+                <option value="obv">OBV</option>
+                <option value="cmf">CMF</option>
+              </optgroup>
+            </select>
+            <div class="active-indicators" id="active-indicators"></div>
+          </div>
+          <!-- Main candlestick chart -->
+          <div id="chart-main"></div>
+          <!-- Indicator sub-panes injected here by chartManager -->
+          <div id="indicator-panes" class="indicator-panes"></div>
+        </div>
+
+        <!-- Right sidebar -->
+        <div class="terminal-sidebar">
+          <!-- Quote panel -->
+          <div class="quote-panel" id="quote-panel">
+            <div class="qp-symbol" id="qp-symbol">--</div>
+            <div class="qp-name" id="qp-name">--</div>
+            <div class="qp-price neu" id="qp-price">--</div>
+            <div class="qp-change" id="qp-change">-- --</div>
+            <div class="qp-stats">
+              <div class="qp-stat"><span class="qp-stat-label">Open</span><span class="qp-stat-value" id="qp-open">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">Prev Close</span><span class="qp-stat-value" id="qp-prev">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">Day High</span><span class="qp-stat-value num-up" id="qp-high">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">Day Low</span><span class="qp-stat-value num-dn" id="qp-low">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">Volume</span><span class="qp-stat-value" id="qp-vol">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">Avg Vol</span><span class="qp-stat-value" id="qp-avgvol">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">Mkt Cap</span><span class="qp-stat-value" id="qp-mktcap">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">P/E</span><span class="qp-stat-value" id="qp-pe">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">52W High</span><span class="qp-stat-value" id="qp-52h">--</span></div>
+              <div class="qp-stat"><span class="qp-stat-label">52W Low</span><span class="qp-stat-value" id="qp-52l">--</span></div>
+            </div>
+            <div class="qp-ba">
+              <div class="qp-ba-side bid">
+                <div class="qp-ba-label">BID</div>
+                <div class="qp-ba-val" id="qp-bid">--</div>
+              </div>
+              <div class="qp-ba-divider"></div>
+              <div class="qp-ba-side ask">
+                <div class="qp-ba-label">ASK</div>
+                <div class="qp-ba-val" id="qp-ask">--</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order book -->
+          <div class="order-book-panel">
+            <div class="panel-title">ORDER BOOK <span id="ob-spread" style="color:var(--t-3);font-size:9px;font-weight:400;"></span></div>
+            <div class="ob-header">
+              <span>PRICE</span><span style="text-align:right">SIZE</span><span style="text-align:right">TOTAL</span>
+            </div>
+            <div id="ob-asks" class="ob-asks"></div>
+            <div class="ob-spread" id="ob-spread-row">SPREAD --</div>
+            <div id="ob-bids" class="ob-bids"></div>
+          </div>
+
+          <!-- Watchlist -->
+          <div class="watchlist-panel">
+            <div class="watchlist-header">
+              <span class="section-label">WATCHLIST</span>
+              <input type="text" id="wl-input" class="watchlist-input" placeholder="ADD SYMBOL" maxlength="8"/>
+              <button class="watchlist-add" id="wl-add" title="Add to watchlist">+</button>
+            </div>
+            <div id="watchlist" class="watchlist-items"></div>
+          </div>
+        </div>
+
+        <!-- Bottom panel -->
+        <div class="bottom-panel">
+          <div class="bottom-tabs">
+            <button class="bot-tab active" data-panel="positions">POSITIONS</button>
+            <button class="bot-tab" data-panel="orders">RECENT TRADES</button>
+            <button class="bot-tab" data-panel="fundamentals">FUNDAMENTALS</button>
+          </div>
+          <div id="bottom-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paper Trade -->
+    <div id="page-paper" class="page">
+      <div class="paper-layout">
+        <div class="paper-sidebar" id="paper-sidebar">
+          <!-- Order form — injected by paperTrade.js -->
+        </div>
+        <div class="paper-main" id="paper-main">
+          <!-- Portfolio — injected by paperTrade.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div id="page-options" class="page">
+      <div class="options-layout">
+        <div class="options-controls" id="options-controls">
+          <!-- Controls — injected by options.js -->
+        </div>
+        <div class="options-main" id="options-main">
+          <!-- Results — injected by options.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Backtest -->
+    <div id="page-backtest" class="page">
+      <div class="backtest-layout">
+        <div class="bt-controls" id="bt-controls">
+          <!-- Config — injected by backtest.js -->
+        </div>
+        <div class="bt-main" id="bt-main">
+          <!-- Results — injected by backtest.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Quant Lab -->
+    <div id="page-quant-lab" class="page">
+      <div class="quant-layout">
+        <div class="quant-nav" id="quant-nav">
+          <!-- Nav — injected by quantLab.js -->
+        </div>
+        <div class="quant-content" id="quant-content">
+          <!-- Content — injected by quantLab.js -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Scripts ────────────────────────────────────────────────────────── -->
+<!-- TradingView Lightweight Charts v4.1.3 (Apache-2.0), self-hosted so no CDN is needed -->
+<script data-cfasync="false" src="/vendor/lightweight-charts.standalone.production.js"></script>
+<script data-cfasync="false" src="/js/indicators.js"></script>
+<script data-cfasync="false" src="/js/strategies.js"></script>
+<script data-cfasync="false" src="/js/options.js"></script>
+<script data-cfasync="false" src="/js/backtest.js"></script>
+<script data-cfasync="false" src="/js/chartManager.js"></script>
+<script data-cfasync="false" src="/js/terminal.js"></script>
+<script data-cfasync="false" src="/js/paperTrade.js"></script>
+<script data-cfasync="false" src="/js/quantContent.js"></script>
+<script data-cfasync="false" src="/js/quantLab.js"></script>
+<script data-cfasync="false" src="/js/app.js"></script>
+</body>
+</html>

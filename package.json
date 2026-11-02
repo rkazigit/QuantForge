@@ -1,0 +1,28 @@
+{
+  "name": "quantforge",
+  "version": "2.0.0",
+  "description": "Quantitative finance terminal: live market data, paper trading, options pricing, backtesting, quant education. Runs on Node or Cloudflare Workers.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test test/engines.test.mjs",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "ws": "^8.18.0",
+    "yahoo-finance2": "^2.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  }
+}
